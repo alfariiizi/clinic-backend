@@ -33,9 +33,8 @@ func GenerateAdmin(db *db.Client) error {
 
 	_, err = tx.User.Create().
 		SetEmail(cfg.Superadmin.Email).
-		SetFirstName("Super").
-		SetLastName("Admin").
-		SetRole(user.RoleSUPERADMIN).
+		SetName("Admin").
+		SetRole(user.RoleADMIN).
 		SetPasswordHash(*password).
 		Save(context.Background())
 	if err != nil {

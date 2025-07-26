@@ -27,5 +27,5 @@ func (u *User) CanLogin() bool {
 }
 
 func (u *User) FullName() string {
-	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
+	return fmt.Sprintf("%s %s", u.Name)
 }

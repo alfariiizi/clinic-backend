@@ -76,9 +76,9 @@ func (s *login) Process(ctx context.Context, input LoginInput) (*LoginOutput, er
 		Where(user.Email(input.Email)).
 		Where(user.PasswordHash(*password))
 
-	if !input.IsAdmin {
-		query = query.Where(user.RoleEQ(user.RoleUSER))
-	}
+	// if !input.IsAdmin {
+	// 	query = query.Where(user.RoleIn(user.RoleSTAFF, user.RoleDOCTOR, user.RoleADMIN))
+	// }
 
 	user, err := s.domain.User.One(
 		query.Only(ctx),
