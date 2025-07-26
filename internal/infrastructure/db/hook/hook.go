@@ -9,6 +9,18 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db"
 )
 
+// The AIInteractionFunc type is an adapter to allow the use of ordinary
+// function as AIInteraction mutator.
+type AIInteractionFunc func(context.Context, *db.AIInteractionMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AIInteractionFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AIInteractionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AIInteractionMutation", m)
+}
+
 // The AdminAuditLogFunc type is an adapter to allow the use of ordinary
 // function as AdminAuditLog mutator.
 type AdminAuditLogFunc func(context.Context, *db.AdminAuditLogMutation) (db.Value, error)
@@ -21,6 +33,198 @@ func (f AdminAuditLogFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AdminAuditLogMutation", m)
 }
 
+// The AppointmentFunc type is an adapter to allow the use of ordinary
+// function as Appointment mutator.
+type AppointmentFunc func(context.Context, *db.AppointmentMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AppointmentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AppointmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AppointmentMutation", m)
+}
+
+// The AppointmentReminderFunc type is an adapter to allow the use of ordinary
+// function as AppointmentReminder mutator.
+type AppointmentReminderFunc func(context.Context, *db.AppointmentReminderMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AppointmentReminderFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AppointmentReminderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AppointmentReminderMutation", m)
+}
+
+// The BillingRecordFunc type is an adapter to allow the use of ordinary
+// function as BillingRecord mutator.
+type BillingRecordFunc func(context.Context, *db.BillingRecordMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BillingRecordFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.BillingRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.BillingRecordMutation", m)
+}
+
+// The ChatMessageFunc type is an adapter to allow the use of ordinary
+// function as ChatMessage mutator.
+type ChatMessageFunc func(context.Context, *db.ChatMessageMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChatMessageFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ChatMessageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ChatMessageMutation", m)
+}
+
+// The ChatThreadFunc type is an adapter to allow the use of ordinary
+// function as ChatThread mutator.
+type ChatThreadFunc func(context.Context, *db.ChatThreadMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChatThreadFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ChatThreadMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ChatThreadMutation", m)
+}
+
+// The ClinicFunc type is an adapter to allow the use of ordinary
+// function as Clinic mutator.
+type ClinicFunc func(context.Context, *db.ClinicMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ClinicFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ClinicMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ClinicMutation", m)
+}
+
+// The DoctorFunc type is an adapter to allow the use of ordinary
+// function as Doctor mutator.
+type DoctorFunc func(context.Context, *db.DoctorMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DoctorFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.DoctorMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.DoctorMutation", m)
+}
+
+// The DoctorScheduleFunc type is an adapter to allow the use of ordinary
+// function as DoctorSchedule mutator.
+type DoctorScheduleFunc func(context.Context, *db.DoctorScheduleMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DoctorScheduleFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.DoctorScheduleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.DoctorScheduleMutation", m)
+}
+
+// The DocumentFunc type is an adapter to allow the use of ordinary
+// function as Document mutator.
+type DocumentFunc func(context.Context, *db.DocumentMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DocumentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.DocumentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.DocumentMutation", m)
+}
+
+// The FeatureFunc type is an adapter to allow the use of ordinary
+// function as Feature mutator.
+type FeatureFunc func(context.Context, *db.FeatureMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FeatureFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.FeatureMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.FeatureMutation", m)
+}
+
+// The InventoryMovementFunc type is an adapter to allow the use of ordinary
+// function as InventoryMovement mutator.
+type InventoryMovementFunc func(context.Context, *db.InventoryMovementMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InventoryMovementFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.InventoryMovementMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.InventoryMovementMutation", m)
+}
+
+// The KnowledgeBaseFunc type is an adapter to allow the use of ordinary
+// function as KnowledgeBase mutator.
+type KnowledgeBaseFunc func(context.Context, *db.KnowledgeBaseMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f KnowledgeBaseFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.KnowledgeBaseMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.KnowledgeBaseMutation", m)
+}
+
+// The OrderFunc type is an adapter to allow the use of ordinary
+// function as Order mutator.
+type OrderFunc func(context.Context, *db.OrderMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.OrderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.OrderMutation", m)
+}
+
+// The OrderItemFunc type is an adapter to allow the use of ordinary
+// function as OrderItem mutator.
+type OrderItemFunc func(context.Context, *db.OrderItemMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderItemFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.OrderItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.OrderItemMutation", m)
+}
+
+// The OrderStatusHistoryFunc type is an adapter to allow the use of ordinary
+// function as OrderStatusHistory mutator.
+type OrderStatusHistoryFunc func(context.Context, *db.OrderStatusHistoryMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderStatusHistoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.OrderStatusHistoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.OrderStatusHistoryMutation", m)
+}
+
+// The PatientFunc type is an adapter to allow the use of ordinary
+// function as Patient mutator.
+type PatientFunc func(context.Context, *db.PatientMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PatientFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.PatientMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.PatientMutation", m)
+}
+
 // The ProductFunc type is an adapter to allow the use of ordinary
 // function as Product mutator.
 type ProductFunc func(context.Context, *db.ProductMutation) (db.Value, error)
@@ -31,6 +235,42 @@ func (f ProductFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProductMutation", m)
+}
+
+// The ProductCategoryFunc type is an adapter to allow the use of ordinary
+// function as ProductCategory mutator.
+type ProductCategoryFunc func(context.Context, *db.ProductCategoryMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProductCategoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ProductCategoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProductCategoryMutation", m)
+}
+
+// The QueueEntryFunc type is an adapter to allow the use of ordinary
+// function as QueueEntry mutator.
+type QueueEntryFunc func(context.Context, *db.QueueEntryMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QueueEntryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.QueueEntryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.QueueEntryMutation", m)
+}
+
+// The ServiceFunc type is an adapter to allow the use of ordinary
+// function as Service mutator.
+type ServiceFunc func(context.Context, *db.ServiceMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ServiceFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ServiceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ServiceMutation", m)
 }
 
 // The SessionFunc type is an adapter to allow the use of ordinary

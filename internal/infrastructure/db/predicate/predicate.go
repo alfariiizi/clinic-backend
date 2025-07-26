@@ -6,11 +6,71 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AIInteraction is the predicate function for aiinteraction builders.
+type AIInteraction func(*sql.Selector)
+
 // AdminAuditLog is the predicate function for adminauditlog builders.
 type AdminAuditLog func(*sql.Selector)
 
+// Appointment is the predicate function for appointment builders.
+type Appointment func(*sql.Selector)
+
+// AppointmentReminder is the predicate function for appointmentreminder builders.
+type AppointmentReminder func(*sql.Selector)
+
+// BillingRecord is the predicate function for billingrecord builders.
+type BillingRecord func(*sql.Selector)
+
+// ChatMessage is the predicate function for chatmessage builders.
+type ChatMessage func(*sql.Selector)
+
+// ChatThread is the predicate function for chatthread builders.
+type ChatThread func(*sql.Selector)
+
+// Clinic is the predicate function for clinic builders.
+type Clinic func(*sql.Selector)
+
+// Doctor is the predicate function for doctor builders.
+type Doctor func(*sql.Selector)
+
+// DoctorSchedule is the predicate function for doctorschedule builders.
+type DoctorSchedule func(*sql.Selector)
+
+// Document is the predicate function for document builders.
+type Document func(*sql.Selector)
+
+// Feature is the predicate function for feature builders.
+type Feature func(*sql.Selector)
+
+// InventoryMovement is the predicate function for inventorymovement builders.
+type InventoryMovement func(*sql.Selector)
+
+// KnowledgeBase is the predicate function for knowledgebase builders.
+type KnowledgeBase func(*sql.Selector)
+
+// Order is the predicate function for order builders.
+type Order func(*sql.Selector)
+
+// OrderItem is the predicate function for orderitem builders.
+type OrderItem func(*sql.Selector)
+
+// OrderStatusHistory is the predicate function for orderstatushistory builders.
+type OrderStatusHistory func(*sql.Selector)
+
+// Patient is the predicate function for patient builders.
+type Patient func(*sql.Selector)
+
 // Product is the predicate function for product builders.
 type Product func(*sql.Selector)
+
+// ProductCategory is the predicate function for productcategory builders.
+type ProductCategory func(*sql.Selector)
+
+// QueueEntry is the predicate function for queueentry builders.
+type QueueEntry func(*sql.Selector)
+
+// Service is the predicate function for service builders.
+type Service func(*sql.Selector)
 
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)

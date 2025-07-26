@@ -18,31 +18,26 @@ const (
 	FieldID = "id"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
-	// FieldFirstName holds the string denoting the first_name field in the database.
-	FieldFirstName = "first_name"
-	// FieldLastName holds the string denoting the last_name field in the database.
-	FieldLastName = "last_name"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
+	// FieldPhone holds the string denoting the phone field in the database.
+	FieldPhone = "phone"
+	// FieldActive holds the string denoting the active field in the database.
+	FieldActive = "active"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeProducts holds the string denoting the products edge name in mutations.
-	EdgeProducts = "products"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
+	// EdgeClinic holds the string denoting the clinic edge name in mutations.
+	EdgeClinic = "clinic"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// ProductsTable is the table that holds the products relation/edge.
-	ProductsTable = "products"
-	// ProductsInverseTable is the table name for the Product entity.
-	// It exists in this package in order to avoid circular dependency with the "product" package.
-	ProductsInverseTable = "products"
-	// ProductsColumn is the table column denoting the products relation/edge.
-	ProductsColumn = "creator_id"
 	// SessionsTable is the table that holds the sessions relation/edge.
 	SessionsTable = "sessions"
 	// SessionsInverseTable is the table name for the Session entity.
@@ -50,18 +45,32 @@ const (
 	SessionsInverseTable = "sessions"
 	// SessionsColumn is the table column denoting the sessions relation/edge.
 	SessionsColumn = "user_id"
+	// ClinicTable is the table that holds the clinic relation/edge.
+	ClinicTable = "users"
+	// ClinicInverseTable is the table name for the Clinic entity.
+	// It exists in this package in order to avoid circular dependency with the "clinic" package.
+	ClinicInverseTable = "clinics"
+	// ClinicColumn is the table column denoting the clinic relation/edge.
+	ClinicColumn = "clinic_users"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
 	FieldEmail,
-	FieldFirstName,
-	FieldLastName,
 	FieldPasswordHash,
+	FieldName,
 	FieldRole,
+	FieldPhone,
+	FieldActive,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "users"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"clinic_users",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -71,14 +80,17 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
 
 var (
-	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	EmailValidator func(string) error
-	// PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
-	PasswordHashValidator func(string) error
+	// DefaultActive holds the default value on creation for the "active" field.
+	DefaultActive bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -94,9 +106,9 @@ type Role string
 
 // Role values.
 const (
-	RoleUSER       Role = "USER"
-	RoleADMIN      Role = "ADMIN"
-	RoleSUPERADMIN Role = "SUPERADMIN"
+	RoleADMIN  Role = "ADMIN"
+	RoleSTAFF  Role = "STAFF"
+	RoleDOCTOR Role = "DOCTOR"
 )
 
 func (r Role) String() string {
@@ -106,7 +118,7 @@ func (r Role) String() string {
 // RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
 func RoleValidator(r Role) error {
 	switch r {
-	case RoleUSER, RoleADMIN, RoleSUPERADMIN:
+	case RoleADMIN, RoleSTAFF, RoleDOCTOR:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for role field: %q", r)
@@ -126,24 +138,29 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
 }
 
-// ByFirstName orders the results by the first_name field.
-func ByFirstName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFirstName, opts...).ToFunc()
-}
-
-// ByLastName orders the results by the last_name field.
-func ByLastName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldLastName, opts...).ToFunc()
-}
-
 // ByPasswordHash orders the results by the password_hash field.
 func ByPasswordHash(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPasswordHash, opts...).ToFunc()
 }
 
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
+}
+
+// ByPhone orders the results by the phone field.
+func ByPhone(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPhone, opts...).ToFunc()
+}
+
+// ByActive orders the results by the active field.
+func ByActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldActive, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.
@@ -154,20 +171,6 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
-}
-
-// ByProductsCount orders the results by products count.
-func ByProductsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newProductsStep(), opts...)
-	}
-}
-
-// ByProducts orders the results by products terms.
-func ByProducts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newProductsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
 }
 
 // BySessionsCount orders the results by sessions count.
@@ -183,17 +186,24 @@ func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newProductsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ProductsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ProductsTable, ProductsColumn),
-	)
+
+// ByClinicField orders the results by clinic field.
+func ByClinicField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newClinicStep(), sql.OrderByField(field, opts...))
+	}
 }
 func newSessionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SessionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
+	)
+}
+func newClinicStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ClinicInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ClinicTable, ClinicColumn),
 	)
 }

@@ -56,9 +56,24 @@ func IDLTE(id uuid.UUID) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldID, id))
 }
 
+// Sku applies equality check predicate on the "sku" field. It's identical to SkuEQ.
+func Sku(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldSku, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldName, v))
+}
+
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldDescription, v))
+}
+
+// ShortDescription applies equality check predicate on the "short_description" field. It's identical to ShortDescriptionEQ.
+func ShortDescription(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldShortDescription, v))
 }
 
 // Brand applies equality check predicate on the "brand" field. It's identical to BrandEQ.
@@ -66,19 +81,64 @@ func Brand(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldBrand, v))
 }
 
-// Category applies equality check predicate on the "category" field. It's identical to CategoryEQ.
-func Category(v string) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldCategory, v))
+// PurchasePrice applies equality check predicate on the "purchase_price" field. It's identical to PurchasePriceEQ.
+func PurchasePrice(v float64) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldPurchasePrice, v))
 }
 
-// Price applies equality check predicate on the "price" field. It's identical to PriceEQ.
-func Price(v float64) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldPrice, v))
+// SellingPrice applies equality check predicate on the "selling_price" field. It's identical to SellingPriceEQ.
+func SellingPrice(v float64) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldSellingPrice, v))
 }
 
-// CreatorID applies equality check predicate on the "creator_id" field. It's identical to CreatorIDEQ.
-func CreatorID(v uuid.UUID) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldCreatorID, v))
+// DiscountPrice applies equality check predicate on the "discount_price" field. It's identical to DiscountPriceEQ.
+func DiscountPrice(v float64) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldDiscountPrice, v))
+}
+
+// Unit applies equality check predicate on the "unit" field. It's identical to UnitEQ.
+func Unit(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldUnit, v))
+}
+
+// MinStockLevel applies equality check predicate on the "min_stock_level" field. It's identical to MinStockLevelEQ.
+func MinStockLevel(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldMinStockLevel, v))
+}
+
+// CurrentStock applies equality check predicate on the "current_stock" field. It's identical to CurrentStockEQ.
+func CurrentStock(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldCurrentStock, v))
+}
+
+// TrackInventory applies equality check predicate on the "track_inventory" field. It's identical to TrackInventoryEQ.
+func TrackInventory(v bool) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldTrackInventory, v))
+}
+
+// PrescriptionRequired applies equality check predicate on the "prescription_required" field. It's identical to PrescriptionRequiredEQ.
+func PrescriptionRequired(v bool) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldPrescriptionRequired, v))
+}
+
+// ExpiryDate applies equality check predicate on the "expiry_date" field. It's identical to ExpiryDateEQ.
+func ExpiryDate(v time.Time) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldExpiryDate, v))
+}
+
+// BatchNumber applies equality check predicate on the "batch_number" field. It's identical to BatchNumberEQ.
+func BatchNumber(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldBatchNumber, v))
+}
+
+// Weight applies equality check predicate on the "weight" field. It's identical to WeightEQ.
+func Weight(v float64) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldWeight, v))
+}
+
+// Featured applies equality check predicate on the "featured" field. It's identical to FeaturedEQ.
+func Featured(v bool) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldFeatured, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -89,6 +149,71 @@ func CreatedAt(v time.Time) predicate.Product {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// SkuEQ applies the EQ predicate on the "sku" field.
+func SkuEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldSku, v))
+}
+
+// SkuNEQ applies the NEQ predicate on the "sku" field.
+func SkuNEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldSku, v))
+}
+
+// SkuIn applies the In predicate on the "sku" field.
+func SkuIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldSku, vs...))
+}
+
+// SkuNotIn applies the NotIn predicate on the "sku" field.
+func SkuNotIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldSku, vs...))
+}
+
+// SkuGT applies the GT predicate on the "sku" field.
+func SkuGT(v string) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldSku, v))
+}
+
+// SkuGTE applies the GTE predicate on the "sku" field.
+func SkuGTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldSku, v))
+}
+
+// SkuLT applies the LT predicate on the "sku" field.
+func SkuLT(v string) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldSku, v))
+}
+
+// SkuLTE applies the LTE predicate on the "sku" field.
+func SkuLTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldSku, v))
+}
+
+// SkuContains applies the Contains predicate on the "sku" field.
+func SkuContains(v string) predicate.Product {
+	return predicate.Product(sql.FieldContains(FieldSku, v))
+}
+
+// SkuHasPrefix applies the HasPrefix predicate on the "sku" field.
+func SkuHasPrefix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasPrefix(FieldSku, v))
+}
+
+// SkuHasSuffix applies the HasSuffix predicate on the "sku" field.
+func SkuHasSuffix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasSuffix(FieldSku, v))
+}
+
+// SkuEqualFold applies the EqualFold predicate on the "sku" field.
+func SkuEqualFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldEqualFold(FieldSku, v))
+}
+
+// SkuContainsFold applies the ContainsFold predicate on the "sku" field.
+func SkuContainsFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldContainsFold(FieldSku, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -156,6 +281,156 @@ func NameContainsFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldContainsFold(FieldName, v))
 }
 
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.Product {
+	return predicate.Product(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionIsNil applies the IsNil predicate on the "description" field.
+func DescriptionIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldDescription))
+}
+
+// DescriptionNotNil applies the NotNil predicate on the "description" field.
+func DescriptionNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldDescription))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// ShortDescriptionEQ applies the EQ predicate on the "short_description" field.
+func ShortDescriptionEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldShortDescription, v))
+}
+
+// ShortDescriptionNEQ applies the NEQ predicate on the "short_description" field.
+func ShortDescriptionNEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldShortDescription, v))
+}
+
+// ShortDescriptionIn applies the In predicate on the "short_description" field.
+func ShortDescriptionIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldShortDescription, vs...))
+}
+
+// ShortDescriptionNotIn applies the NotIn predicate on the "short_description" field.
+func ShortDescriptionNotIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldShortDescription, vs...))
+}
+
+// ShortDescriptionGT applies the GT predicate on the "short_description" field.
+func ShortDescriptionGT(v string) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldShortDescription, v))
+}
+
+// ShortDescriptionGTE applies the GTE predicate on the "short_description" field.
+func ShortDescriptionGTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldShortDescription, v))
+}
+
+// ShortDescriptionLT applies the LT predicate on the "short_description" field.
+func ShortDescriptionLT(v string) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldShortDescription, v))
+}
+
+// ShortDescriptionLTE applies the LTE predicate on the "short_description" field.
+func ShortDescriptionLTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldShortDescription, v))
+}
+
+// ShortDescriptionContains applies the Contains predicate on the "short_description" field.
+func ShortDescriptionContains(v string) predicate.Product {
+	return predicate.Product(sql.FieldContains(FieldShortDescription, v))
+}
+
+// ShortDescriptionHasPrefix applies the HasPrefix predicate on the "short_description" field.
+func ShortDescriptionHasPrefix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasPrefix(FieldShortDescription, v))
+}
+
+// ShortDescriptionHasSuffix applies the HasSuffix predicate on the "short_description" field.
+func ShortDescriptionHasSuffix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasSuffix(FieldShortDescription, v))
+}
+
+// ShortDescriptionIsNil applies the IsNil predicate on the "short_description" field.
+func ShortDescriptionIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldShortDescription))
+}
+
+// ShortDescriptionNotNil applies the NotNil predicate on the "short_description" field.
+func ShortDescriptionNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldShortDescription))
+}
+
+// ShortDescriptionEqualFold applies the EqualFold predicate on the "short_description" field.
+func ShortDescriptionEqualFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldEqualFold(FieldShortDescription, v))
+}
+
+// ShortDescriptionContainsFold applies the ContainsFold predicate on the "short_description" field.
+func ShortDescriptionContainsFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldContainsFold(FieldShortDescription, v))
+}
+
 // BrandEQ applies the EQ predicate on the "brand" field.
 func BrandEQ(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldBrand, v))
@@ -211,6 +486,16 @@ func BrandHasSuffix(v string) predicate.Product {
 	return predicate.Product(sql.FieldHasSuffix(FieldBrand, v))
 }
 
+// BrandIsNil applies the IsNil predicate on the "brand" field.
+func BrandIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldBrand))
+}
+
+// BrandNotNil applies the NotNil predicate on the "brand" field.
+func BrandNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldBrand))
+}
+
 // BrandEqualFold applies the EqualFold predicate on the "brand" field.
 func BrandEqualFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldEqualFold(FieldBrand, v))
@@ -221,129 +506,564 @@ func BrandContainsFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldContainsFold(FieldBrand, v))
 }
 
-// CategoryEQ applies the EQ predicate on the "category" field.
-func CategoryEQ(v string) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldCategory, v))
+// ImagesIsNil applies the IsNil predicate on the "images" field.
+func ImagesIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldImages))
 }
 
-// CategoryNEQ applies the NEQ predicate on the "category" field.
-func CategoryNEQ(v string) predicate.Product {
-	return predicate.Product(sql.FieldNEQ(FieldCategory, v))
+// ImagesNotNil applies the NotNil predicate on the "images" field.
+func ImagesNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldImages))
 }
 
-// CategoryIn applies the In predicate on the "category" field.
-func CategoryIn(vs ...string) predicate.Product {
-	return predicate.Product(sql.FieldIn(FieldCategory, vs...))
+// PurchasePriceEQ applies the EQ predicate on the "purchase_price" field.
+func PurchasePriceEQ(v float64) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldPurchasePrice, v))
 }
 
-// CategoryNotIn applies the NotIn predicate on the "category" field.
-func CategoryNotIn(vs ...string) predicate.Product {
-	return predicate.Product(sql.FieldNotIn(FieldCategory, vs...))
+// PurchasePriceNEQ applies the NEQ predicate on the "purchase_price" field.
+func PurchasePriceNEQ(v float64) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldPurchasePrice, v))
 }
 
-// CategoryGT applies the GT predicate on the "category" field.
-func CategoryGT(v string) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldCategory, v))
+// PurchasePriceIn applies the In predicate on the "purchase_price" field.
+func PurchasePriceIn(vs ...float64) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldPurchasePrice, vs...))
 }
 
-// CategoryGTE applies the GTE predicate on the "category" field.
-func CategoryGTE(v string) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldCategory, v))
+// PurchasePriceNotIn applies the NotIn predicate on the "purchase_price" field.
+func PurchasePriceNotIn(vs ...float64) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldPurchasePrice, vs...))
 }
 
-// CategoryLT applies the LT predicate on the "category" field.
-func CategoryLT(v string) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldCategory, v))
+// PurchasePriceGT applies the GT predicate on the "purchase_price" field.
+func PurchasePriceGT(v float64) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldPurchasePrice, v))
 }
 
-// CategoryLTE applies the LTE predicate on the "category" field.
-func CategoryLTE(v string) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldCategory, v))
+// PurchasePriceGTE applies the GTE predicate on the "purchase_price" field.
+func PurchasePriceGTE(v float64) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldPurchasePrice, v))
 }
 
-// CategoryContains applies the Contains predicate on the "category" field.
-func CategoryContains(v string) predicate.Product {
-	return predicate.Product(sql.FieldContains(FieldCategory, v))
+// PurchasePriceLT applies the LT predicate on the "purchase_price" field.
+func PurchasePriceLT(v float64) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldPurchasePrice, v))
 }
 
-// CategoryHasPrefix applies the HasPrefix predicate on the "category" field.
-func CategoryHasPrefix(v string) predicate.Product {
-	return predicate.Product(sql.FieldHasPrefix(FieldCategory, v))
+// PurchasePriceLTE applies the LTE predicate on the "purchase_price" field.
+func PurchasePriceLTE(v float64) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldPurchasePrice, v))
 }
 
-// CategoryHasSuffix applies the HasSuffix predicate on the "category" field.
-func CategoryHasSuffix(v string) predicate.Product {
-	return predicate.Product(sql.FieldHasSuffix(FieldCategory, v))
+// SellingPriceEQ applies the EQ predicate on the "selling_price" field.
+func SellingPriceEQ(v float64) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldSellingPrice, v))
 }
 
-// CategoryEqualFold applies the EqualFold predicate on the "category" field.
-func CategoryEqualFold(v string) predicate.Product {
-	return predicate.Product(sql.FieldEqualFold(FieldCategory, v))
+// SellingPriceNEQ applies the NEQ predicate on the "selling_price" field.
+func SellingPriceNEQ(v float64) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldSellingPrice, v))
 }
 
-// CategoryContainsFold applies the ContainsFold predicate on the "category" field.
-func CategoryContainsFold(v string) predicate.Product {
-	return predicate.Product(sql.FieldContainsFold(FieldCategory, v))
+// SellingPriceIn applies the In predicate on the "selling_price" field.
+func SellingPriceIn(vs ...float64) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldSellingPrice, vs...))
 }
 
-// PriceEQ applies the EQ predicate on the "price" field.
-func PriceEQ(v float64) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldPrice, v))
+// SellingPriceNotIn applies the NotIn predicate on the "selling_price" field.
+func SellingPriceNotIn(vs ...float64) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldSellingPrice, vs...))
 }
 
-// PriceNEQ applies the NEQ predicate on the "price" field.
-func PriceNEQ(v float64) predicate.Product {
-	return predicate.Product(sql.FieldNEQ(FieldPrice, v))
+// SellingPriceGT applies the GT predicate on the "selling_price" field.
+func SellingPriceGT(v float64) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldSellingPrice, v))
 }
 
-// PriceIn applies the In predicate on the "price" field.
-func PriceIn(vs ...float64) predicate.Product {
-	return predicate.Product(sql.FieldIn(FieldPrice, vs...))
+// SellingPriceGTE applies the GTE predicate on the "selling_price" field.
+func SellingPriceGTE(v float64) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldSellingPrice, v))
 }
 
-// PriceNotIn applies the NotIn predicate on the "price" field.
-func PriceNotIn(vs ...float64) predicate.Product {
-	return predicate.Product(sql.FieldNotIn(FieldPrice, vs...))
+// SellingPriceLT applies the LT predicate on the "selling_price" field.
+func SellingPriceLT(v float64) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldSellingPrice, v))
 }
 
-// PriceGT applies the GT predicate on the "price" field.
-func PriceGT(v float64) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldPrice, v))
+// SellingPriceLTE applies the LTE predicate on the "selling_price" field.
+func SellingPriceLTE(v float64) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldSellingPrice, v))
 }
 
-// PriceGTE applies the GTE predicate on the "price" field.
-func PriceGTE(v float64) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldPrice, v))
+// DiscountPriceEQ applies the EQ predicate on the "discount_price" field.
+func DiscountPriceEQ(v float64) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldDiscountPrice, v))
 }
 
-// PriceLT applies the LT predicate on the "price" field.
-func PriceLT(v float64) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldPrice, v))
+// DiscountPriceNEQ applies the NEQ predicate on the "discount_price" field.
+func DiscountPriceNEQ(v float64) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldDiscountPrice, v))
 }
 
-// PriceLTE applies the LTE predicate on the "price" field.
-func PriceLTE(v float64) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldPrice, v))
+// DiscountPriceIn applies the In predicate on the "discount_price" field.
+func DiscountPriceIn(vs ...float64) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldDiscountPrice, vs...))
 }
 
-// CreatorIDEQ applies the EQ predicate on the "creator_id" field.
-func CreatorIDEQ(v uuid.UUID) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldCreatorID, v))
+// DiscountPriceNotIn applies the NotIn predicate on the "discount_price" field.
+func DiscountPriceNotIn(vs ...float64) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldDiscountPrice, vs...))
 }
 
-// CreatorIDNEQ applies the NEQ predicate on the "creator_id" field.
-func CreatorIDNEQ(v uuid.UUID) predicate.Product {
-	return predicate.Product(sql.FieldNEQ(FieldCreatorID, v))
+// DiscountPriceGT applies the GT predicate on the "discount_price" field.
+func DiscountPriceGT(v float64) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldDiscountPrice, v))
 }
 
-// CreatorIDIn applies the In predicate on the "creator_id" field.
-func CreatorIDIn(vs ...uuid.UUID) predicate.Product {
-	return predicate.Product(sql.FieldIn(FieldCreatorID, vs...))
+// DiscountPriceGTE applies the GTE predicate on the "discount_price" field.
+func DiscountPriceGTE(v float64) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldDiscountPrice, v))
 }
 
-// CreatorIDNotIn applies the NotIn predicate on the "creator_id" field.
-func CreatorIDNotIn(vs ...uuid.UUID) predicate.Product {
-	return predicate.Product(sql.FieldNotIn(FieldCreatorID, vs...))
+// DiscountPriceLT applies the LT predicate on the "discount_price" field.
+func DiscountPriceLT(v float64) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldDiscountPrice, v))
+}
+
+// DiscountPriceLTE applies the LTE predicate on the "discount_price" field.
+func DiscountPriceLTE(v float64) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldDiscountPrice, v))
+}
+
+// DiscountPriceIsNil applies the IsNil predicate on the "discount_price" field.
+func DiscountPriceIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldDiscountPrice))
+}
+
+// DiscountPriceNotNil applies the NotNil predicate on the "discount_price" field.
+func DiscountPriceNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldDiscountPrice))
+}
+
+// UnitEQ applies the EQ predicate on the "unit" field.
+func UnitEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldUnit, v))
+}
+
+// UnitNEQ applies the NEQ predicate on the "unit" field.
+func UnitNEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldUnit, v))
+}
+
+// UnitIn applies the In predicate on the "unit" field.
+func UnitIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldUnit, vs...))
+}
+
+// UnitNotIn applies the NotIn predicate on the "unit" field.
+func UnitNotIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldUnit, vs...))
+}
+
+// UnitGT applies the GT predicate on the "unit" field.
+func UnitGT(v string) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldUnit, v))
+}
+
+// UnitGTE applies the GTE predicate on the "unit" field.
+func UnitGTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldUnit, v))
+}
+
+// UnitLT applies the LT predicate on the "unit" field.
+func UnitLT(v string) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldUnit, v))
+}
+
+// UnitLTE applies the LTE predicate on the "unit" field.
+func UnitLTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldUnit, v))
+}
+
+// UnitContains applies the Contains predicate on the "unit" field.
+func UnitContains(v string) predicate.Product {
+	return predicate.Product(sql.FieldContains(FieldUnit, v))
+}
+
+// UnitHasPrefix applies the HasPrefix predicate on the "unit" field.
+func UnitHasPrefix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasPrefix(FieldUnit, v))
+}
+
+// UnitHasSuffix applies the HasSuffix predicate on the "unit" field.
+func UnitHasSuffix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasSuffix(FieldUnit, v))
+}
+
+// UnitEqualFold applies the EqualFold predicate on the "unit" field.
+func UnitEqualFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldEqualFold(FieldUnit, v))
+}
+
+// UnitContainsFold applies the ContainsFold predicate on the "unit" field.
+func UnitContainsFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldContainsFold(FieldUnit, v))
+}
+
+// MinStockLevelEQ applies the EQ predicate on the "min_stock_level" field.
+func MinStockLevelEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldMinStockLevel, v))
+}
+
+// MinStockLevelNEQ applies the NEQ predicate on the "min_stock_level" field.
+func MinStockLevelNEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldMinStockLevel, v))
+}
+
+// MinStockLevelIn applies the In predicate on the "min_stock_level" field.
+func MinStockLevelIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldMinStockLevel, vs...))
+}
+
+// MinStockLevelNotIn applies the NotIn predicate on the "min_stock_level" field.
+func MinStockLevelNotIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldMinStockLevel, vs...))
+}
+
+// MinStockLevelGT applies the GT predicate on the "min_stock_level" field.
+func MinStockLevelGT(v int) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldMinStockLevel, v))
+}
+
+// MinStockLevelGTE applies the GTE predicate on the "min_stock_level" field.
+func MinStockLevelGTE(v int) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldMinStockLevel, v))
+}
+
+// MinStockLevelLT applies the LT predicate on the "min_stock_level" field.
+func MinStockLevelLT(v int) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldMinStockLevel, v))
+}
+
+// MinStockLevelLTE applies the LTE predicate on the "min_stock_level" field.
+func MinStockLevelLTE(v int) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldMinStockLevel, v))
+}
+
+// CurrentStockEQ applies the EQ predicate on the "current_stock" field.
+func CurrentStockEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldCurrentStock, v))
+}
+
+// CurrentStockNEQ applies the NEQ predicate on the "current_stock" field.
+func CurrentStockNEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldCurrentStock, v))
+}
+
+// CurrentStockIn applies the In predicate on the "current_stock" field.
+func CurrentStockIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldCurrentStock, vs...))
+}
+
+// CurrentStockNotIn applies the NotIn predicate on the "current_stock" field.
+func CurrentStockNotIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldCurrentStock, vs...))
+}
+
+// CurrentStockGT applies the GT predicate on the "current_stock" field.
+func CurrentStockGT(v int) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldCurrentStock, v))
+}
+
+// CurrentStockGTE applies the GTE predicate on the "current_stock" field.
+func CurrentStockGTE(v int) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldCurrentStock, v))
+}
+
+// CurrentStockLT applies the LT predicate on the "current_stock" field.
+func CurrentStockLT(v int) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldCurrentStock, v))
+}
+
+// CurrentStockLTE applies the LTE predicate on the "current_stock" field.
+func CurrentStockLTE(v int) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldCurrentStock, v))
+}
+
+// TrackInventoryEQ applies the EQ predicate on the "track_inventory" field.
+func TrackInventoryEQ(v bool) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldTrackInventory, v))
+}
+
+// TrackInventoryNEQ applies the NEQ predicate on the "track_inventory" field.
+func TrackInventoryNEQ(v bool) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldTrackInventory, v))
+}
+
+// PrescriptionRequiredEQ applies the EQ predicate on the "prescription_required" field.
+func PrescriptionRequiredEQ(v bool) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldPrescriptionRequired, v))
+}
+
+// PrescriptionRequiredNEQ applies the NEQ predicate on the "prescription_required" field.
+func PrescriptionRequiredNEQ(v bool) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldPrescriptionRequired, v))
+}
+
+// SpecificationsIsNil applies the IsNil predicate on the "specifications" field.
+func SpecificationsIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldSpecifications))
+}
+
+// SpecificationsNotNil applies the NotNil predicate on the "specifications" field.
+func SpecificationsNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldSpecifications))
+}
+
+// UsageInstructionsIsNil applies the IsNil predicate on the "usage_instructions" field.
+func UsageInstructionsIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldUsageInstructions))
+}
+
+// UsageInstructionsNotNil applies the NotNil predicate on the "usage_instructions" field.
+func UsageInstructionsNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldUsageInstructions))
+}
+
+// WarningsIsNil applies the IsNil predicate on the "warnings" field.
+func WarningsIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldWarnings))
+}
+
+// WarningsNotNil applies the NotNil predicate on the "warnings" field.
+func WarningsNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldWarnings))
+}
+
+// ExpiryDateEQ applies the EQ predicate on the "expiry_date" field.
+func ExpiryDateEQ(v time.Time) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldExpiryDate, v))
+}
+
+// ExpiryDateNEQ applies the NEQ predicate on the "expiry_date" field.
+func ExpiryDateNEQ(v time.Time) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldExpiryDate, v))
+}
+
+// ExpiryDateIn applies the In predicate on the "expiry_date" field.
+func ExpiryDateIn(vs ...time.Time) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldExpiryDate, vs...))
+}
+
+// ExpiryDateNotIn applies the NotIn predicate on the "expiry_date" field.
+func ExpiryDateNotIn(vs ...time.Time) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldExpiryDate, vs...))
+}
+
+// ExpiryDateGT applies the GT predicate on the "expiry_date" field.
+func ExpiryDateGT(v time.Time) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldExpiryDate, v))
+}
+
+// ExpiryDateGTE applies the GTE predicate on the "expiry_date" field.
+func ExpiryDateGTE(v time.Time) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldExpiryDate, v))
+}
+
+// ExpiryDateLT applies the LT predicate on the "expiry_date" field.
+func ExpiryDateLT(v time.Time) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldExpiryDate, v))
+}
+
+// ExpiryDateLTE applies the LTE predicate on the "expiry_date" field.
+func ExpiryDateLTE(v time.Time) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldExpiryDate, v))
+}
+
+// ExpiryDateIsNil applies the IsNil predicate on the "expiry_date" field.
+func ExpiryDateIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldExpiryDate))
+}
+
+// ExpiryDateNotNil applies the NotNil predicate on the "expiry_date" field.
+func ExpiryDateNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldExpiryDate))
+}
+
+// BatchNumberEQ applies the EQ predicate on the "batch_number" field.
+func BatchNumberEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldBatchNumber, v))
+}
+
+// BatchNumberNEQ applies the NEQ predicate on the "batch_number" field.
+func BatchNumberNEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldBatchNumber, v))
+}
+
+// BatchNumberIn applies the In predicate on the "batch_number" field.
+func BatchNumberIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldBatchNumber, vs...))
+}
+
+// BatchNumberNotIn applies the NotIn predicate on the "batch_number" field.
+func BatchNumberNotIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldBatchNumber, vs...))
+}
+
+// BatchNumberGT applies the GT predicate on the "batch_number" field.
+func BatchNumberGT(v string) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldBatchNumber, v))
+}
+
+// BatchNumberGTE applies the GTE predicate on the "batch_number" field.
+func BatchNumberGTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldBatchNumber, v))
+}
+
+// BatchNumberLT applies the LT predicate on the "batch_number" field.
+func BatchNumberLT(v string) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldBatchNumber, v))
+}
+
+// BatchNumberLTE applies the LTE predicate on the "batch_number" field.
+func BatchNumberLTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldBatchNumber, v))
+}
+
+// BatchNumberContains applies the Contains predicate on the "batch_number" field.
+func BatchNumberContains(v string) predicate.Product {
+	return predicate.Product(sql.FieldContains(FieldBatchNumber, v))
+}
+
+// BatchNumberHasPrefix applies the HasPrefix predicate on the "batch_number" field.
+func BatchNumberHasPrefix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasPrefix(FieldBatchNumber, v))
+}
+
+// BatchNumberHasSuffix applies the HasSuffix predicate on the "batch_number" field.
+func BatchNumberHasSuffix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasSuffix(FieldBatchNumber, v))
+}
+
+// BatchNumberIsNil applies the IsNil predicate on the "batch_number" field.
+func BatchNumberIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldBatchNumber))
+}
+
+// BatchNumberNotNil applies the NotNil predicate on the "batch_number" field.
+func BatchNumberNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldBatchNumber))
+}
+
+// BatchNumberEqualFold applies the EqualFold predicate on the "batch_number" field.
+func BatchNumberEqualFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldEqualFold(FieldBatchNumber, v))
+}
+
+// BatchNumberContainsFold applies the ContainsFold predicate on the "batch_number" field.
+func BatchNumberContainsFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldContainsFold(FieldBatchNumber, v))
+}
+
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldStatus, v))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldStatus, vs...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// TagsIsNil applies the IsNil predicate on the "tags" field.
+func TagsIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldTags))
+}
+
+// TagsNotNil applies the NotNil predicate on the "tags" field.
+func TagsNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldTags))
+}
+
+// WeightEQ applies the EQ predicate on the "weight" field.
+func WeightEQ(v float64) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldWeight, v))
+}
+
+// WeightNEQ applies the NEQ predicate on the "weight" field.
+func WeightNEQ(v float64) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldWeight, v))
+}
+
+// WeightIn applies the In predicate on the "weight" field.
+func WeightIn(vs ...float64) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldWeight, vs...))
+}
+
+// WeightNotIn applies the NotIn predicate on the "weight" field.
+func WeightNotIn(vs ...float64) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldWeight, vs...))
+}
+
+// WeightGT applies the GT predicate on the "weight" field.
+func WeightGT(v float64) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldWeight, v))
+}
+
+// WeightGTE applies the GTE predicate on the "weight" field.
+func WeightGTE(v float64) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldWeight, v))
+}
+
+// WeightLT applies the LT predicate on the "weight" field.
+func WeightLT(v float64) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldWeight, v))
+}
+
+// WeightLTE applies the LTE predicate on the "weight" field.
+func WeightLTE(v float64) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldWeight, v))
+}
+
+// WeightIsNil applies the IsNil predicate on the "weight" field.
+func WeightIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldWeight))
+}
+
+// WeightNotNil applies the NotNil predicate on the "weight" field.
+func WeightNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldWeight))
+}
+
+// DimensionsIsNil applies the IsNil predicate on the "dimensions" field.
+func DimensionsIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldDimensions))
+}
+
+// DimensionsNotNil applies the NotNil predicate on the "dimensions" field.
+func DimensionsNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldDimensions))
+}
+
+// FeaturedEQ applies the EQ predicate on the "featured" field.
+func FeaturedEQ(v bool) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldFeatured, v))
+}
+
+// FeaturedNEQ applies the NEQ predicate on the "featured" field.
+func FeaturedNEQ(v bool) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldFeatured, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -426,21 +1146,90 @@ func UpdatedAtLTE(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasUser applies the HasEdge predicate on the "user" edge.
-func HasUser() predicate.Product {
+// HasClinic applies the HasEdge predicate on the "clinic" edge.
+func HasClinic() predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ClinicTable, ClinicColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
-func HasUserWith(preds ...predicate.User) predicate.Product {
+// HasClinicWith applies the HasEdge predicate on the "clinic" edge with a given conditions (other predicates).
+func HasClinicWith(preds ...predicate.Clinic) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
-		step := newUserStep()
+		step := newClinicStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCategory applies the HasEdge predicate on the "category" edge.
+func HasCategory() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCategoryWith applies the HasEdge predicate on the "category" edge with a given conditions (other predicates).
+func HasCategoryWith(preds ...predicate.ProductCategory) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newCategoryStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasInventoryMovements applies the HasEdge predicate on the "inventory_movements" edge.
+func HasInventoryMovements() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InventoryMovementsTable, InventoryMovementsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInventoryMovementsWith applies the HasEdge predicate on the "inventory_movements" edge with a given conditions (other predicates).
+func HasInventoryMovementsWith(preds ...predicate.InventoryMovement) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newInventoryMovementsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderItems applies the HasEdge predicate on the "order_items" edge.
+func HasOrderItems() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderItemsTable, OrderItemsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderItemsWith applies the HasEdge predicate on the "order_items" edge with a given conditions (other predicates).
+func HasOrderItemsWith(preds ...predicate.OrderItem) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newOrderItemsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

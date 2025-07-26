@@ -7,7 +7,27 @@ import (
 
 	"github.com/alfariiizi/vandor/database/schema"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/adminauditlog"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/aiinteraction"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/appointment"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/appointmentreminder"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/billingrecord"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatmessage"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatthread"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctor"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctorschedule"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/document"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/feature"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/inventorymovement"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/knowledgebase"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/order"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/orderitem"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/orderstatushistory"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/patient"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/product"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/productcategory"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/queueentry"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/service"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/session"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
 	"github.com/google/uuid"
@@ -17,6 +37,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	aiinteractionFields := schema.AIInteraction{}.Fields()
+	_ = aiinteractionFields
+	// aiinteractionDescCreatedAt is the schema descriptor for created_at field.
+	aiinteractionDescCreatedAt := aiinteractionFields[10].Descriptor()
+	// aiinteraction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	aiinteraction.DefaultCreatedAt = aiinteractionDescCreatedAt.Default.(func() time.Time)
+	// aiinteractionDescID is the schema descriptor for id field.
+	aiinteractionDescID := aiinteractionFields[0].Descriptor()
+	// aiinteraction.DefaultID holds the default value on creation for the id field.
+	aiinteraction.DefaultID = aiinteractionDescID.Default.(func() uuid.UUID)
 	adminauditlogFields := schema.AdminAuditLog{}.Fields()
 	_ = adminauditlogFields
 	// adminauditlogDescSource is the schema descriptor for source field.
@@ -31,24 +61,434 @@ func init() {
 	adminauditlogDescID := adminauditlogFields[0].Descriptor()
 	// adminauditlog.DefaultID holds the default value on creation for the id field.
 	adminauditlog.DefaultID = adminauditlogDescID.Default.(func() uuid.UUID)
+	appointmentFields := schema.Appointment{}.Fields()
+	_ = appointmentFields
+	// appointmentDescCreatedAt is the schema descriptor for created_at field.
+	appointmentDescCreatedAt := appointmentFields[12].Descriptor()
+	// appointment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	appointment.DefaultCreatedAt = appointmentDescCreatedAt.Default.(func() time.Time)
+	// appointmentDescUpdatedAt is the schema descriptor for updated_at field.
+	appointmentDescUpdatedAt := appointmentFields[13].Descriptor()
+	// appointment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	appointment.DefaultUpdatedAt = appointmentDescUpdatedAt.Default.(func() time.Time)
+	// appointment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	appointment.UpdateDefaultUpdatedAt = appointmentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// appointmentDescID is the schema descriptor for id field.
+	appointmentDescID := appointmentFields[0].Descriptor()
+	// appointment.DefaultID holds the default value on creation for the id field.
+	appointment.DefaultID = appointmentDescID.Default.(func() uuid.UUID)
+	appointmentreminderFields := schema.AppointmentReminder{}.Fields()
+	_ = appointmentreminderFields
+	// appointmentreminderDescCreatedAt is the schema descriptor for created_at field.
+	appointmentreminderDescCreatedAt := appointmentreminderFields[6].Descriptor()
+	// appointmentreminder.DefaultCreatedAt holds the default value on creation for the created_at field.
+	appointmentreminder.DefaultCreatedAt = appointmentreminderDescCreatedAt.Default.(func() time.Time)
+	// appointmentreminderDescID is the schema descriptor for id field.
+	appointmentreminderDescID := appointmentreminderFields[0].Descriptor()
+	// appointmentreminder.DefaultID holds the default value on creation for the id field.
+	appointmentreminder.DefaultID = appointmentreminderDescID.Default.(func() uuid.UUID)
+	billingrecordFields := schema.BillingRecord{}.Fields()
+	_ = billingrecordFields
+	// billingrecordDescTaxAmount is the schema descriptor for tax_amount field.
+	billingrecordDescTaxAmount := billingrecordFields[3].Descriptor()
+	// billingrecord.DefaultTaxAmount holds the default value on creation for the tax_amount field.
+	billingrecord.DefaultTaxAmount = billingrecordDescTaxAmount.Default.(float64)
+	// billingrecordDescDiscountAmount is the schema descriptor for discount_amount field.
+	billingrecordDescDiscountAmount := billingrecordFields[4].Descriptor()
+	// billingrecord.DefaultDiscountAmount holds the default value on creation for the discount_amount field.
+	billingrecord.DefaultDiscountAmount = billingrecordDescDiscountAmount.Default.(float64)
+	// billingrecordDescCurrency is the schema descriptor for currency field.
+	billingrecordDescCurrency := billingrecordFields[6].Descriptor()
+	// billingrecord.DefaultCurrency holds the default value on creation for the currency field.
+	billingrecord.DefaultCurrency = billingrecordDescCurrency.Default.(string)
+	// billingrecordDescCreatedAt is the schema descriptor for created_at field.
+	billingrecordDescCreatedAt := billingrecordFields[13].Descriptor()
+	// billingrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
+	billingrecord.DefaultCreatedAt = billingrecordDescCreatedAt.Default.(func() time.Time)
+	// billingrecordDescUpdatedAt is the schema descriptor for updated_at field.
+	billingrecordDescUpdatedAt := billingrecordFields[14].Descriptor()
+	// billingrecord.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	billingrecord.DefaultUpdatedAt = billingrecordDescUpdatedAt.Default.(func() time.Time)
+	// billingrecord.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	billingrecord.UpdateDefaultUpdatedAt = billingrecordDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// billingrecordDescID is the schema descriptor for id field.
+	billingrecordDescID := billingrecordFields[0].Descriptor()
+	// billingrecord.DefaultID holds the default value on creation for the id field.
+	billingrecord.DefaultID = billingrecordDescID.Default.(func() uuid.UUID)
+	chatmessageFields := schema.ChatMessage{}.Fields()
+	_ = chatmessageFields
+	// chatmessageDescIsRead is the schema descriptor for is_read field.
+	chatmessageDescIsRead := chatmessageFields[8].Descriptor()
+	// chatmessage.DefaultIsRead holds the default value on creation for the is_read field.
+	chatmessage.DefaultIsRead = chatmessageDescIsRead.Default.(bool)
+	// chatmessageDescCreatedAt is the schema descriptor for created_at field.
+	chatmessageDescCreatedAt := chatmessageFields[9].Descriptor()
+	// chatmessage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	chatmessage.DefaultCreatedAt = chatmessageDescCreatedAt.Default.(func() time.Time)
+	// chatmessageDescID is the schema descriptor for id field.
+	chatmessageDescID := chatmessageFields[0].Descriptor()
+	// chatmessage.DefaultID holds the default value on creation for the id field.
+	chatmessage.DefaultID = chatmessageDescID.Default.(func() uuid.UUID)
+	chatthreadFields := schema.ChatThread{}.Fields()
+	_ = chatthreadFields
+	// chatthreadDescCreatedAt is the schema descriptor for created_at field.
+	chatthreadDescCreatedAt := chatthreadFields[5].Descriptor()
+	// chatthread.DefaultCreatedAt holds the default value on creation for the created_at field.
+	chatthread.DefaultCreatedAt = chatthreadDescCreatedAt.Default.(func() time.Time)
+	// chatthreadDescUpdatedAt is the schema descriptor for updated_at field.
+	chatthreadDescUpdatedAt := chatthreadFields[6].Descriptor()
+	// chatthread.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	chatthread.DefaultUpdatedAt = chatthreadDescUpdatedAt.Default.(func() time.Time)
+	// chatthread.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	chatthread.UpdateDefaultUpdatedAt = chatthreadDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// chatthreadDescID is the schema descriptor for id field.
+	chatthreadDescID := chatthreadFields[0].Descriptor()
+	// chatthread.DefaultID holds the default value on creation for the id field.
+	chatthread.DefaultID = chatthreadDescID.Default.(func() uuid.UUID)
+	clinicFields := schema.Clinic{}.Fields()
+	_ = clinicFields
+	// clinicDescSubscriptionPlan is the schema descriptor for subscription_plan field.
+	clinicDescSubscriptionPlan := clinicFields[8].Descriptor()
+	// clinic.DefaultSubscriptionPlan holds the default value on creation for the subscription_plan field.
+	clinic.DefaultSubscriptionPlan = clinicDescSubscriptionPlan.Default.(string)
+	// clinicDescActive is the schema descriptor for active field.
+	clinicDescActive := clinicFields[10].Descriptor()
+	// clinic.DefaultActive holds the default value on creation for the active field.
+	clinic.DefaultActive = clinicDescActive.Default.(bool)
+	// clinicDescCreatedAt is the schema descriptor for created_at field.
+	clinicDescCreatedAt := clinicFields[11].Descriptor()
+	// clinic.DefaultCreatedAt holds the default value on creation for the created_at field.
+	clinic.DefaultCreatedAt = clinicDescCreatedAt.Default.(func() time.Time)
+	// clinicDescUpdatedAt is the schema descriptor for updated_at field.
+	clinicDescUpdatedAt := clinicFields[12].Descriptor()
+	// clinic.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	clinic.DefaultUpdatedAt = clinicDescUpdatedAt.Default.(func() time.Time)
+	// clinic.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	clinic.UpdateDefaultUpdatedAt = clinicDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// clinicDescID is the schema descriptor for id field.
+	clinicDescID := clinicFields[0].Descriptor()
+	// clinic.DefaultID holds the default value on creation for the id field.
+	clinic.DefaultID = clinicDescID.Default.(func() uuid.UUID)
+	doctorFields := schema.Doctor{}.Fields()
+	_ = doctorFields
+	// doctorDescConsultationDuration is the schema descriptor for consultation_duration field.
+	doctorDescConsultationDuration := doctorFields[9].Descriptor()
+	// doctor.DefaultConsultationDuration holds the default value on creation for the consultation_duration field.
+	doctor.DefaultConsultationDuration = doctorDescConsultationDuration.Default.(int)
+	// doctorDescConsultationFee is the schema descriptor for consultation_fee field.
+	doctorDescConsultationFee := doctorFields[10].Descriptor()
+	// doctor.DefaultConsultationFee holds the default value on creation for the consultation_fee field.
+	doctor.DefaultConsultationFee = doctorDescConsultationFee.Default.(float64)
+	// doctorDescActive is the schema descriptor for active field.
+	doctorDescActive := doctorFields[11].Descriptor()
+	// doctor.DefaultActive holds the default value on creation for the active field.
+	doctor.DefaultActive = doctorDescActive.Default.(bool)
+	// doctorDescCreatedAt is the schema descriptor for created_at field.
+	doctorDescCreatedAt := doctorFields[12].Descriptor()
+	// doctor.DefaultCreatedAt holds the default value on creation for the created_at field.
+	doctor.DefaultCreatedAt = doctorDescCreatedAt.Default.(func() time.Time)
+	// doctorDescUpdatedAt is the schema descriptor for updated_at field.
+	doctorDescUpdatedAt := doctorFields[13].Descriptor()
+	// doctor.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	doctor.DefaultUpdatedAt = doctorDescUpdatedAt.Default.(func() time.Time)
+	// doctor.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	doctor.UpdateDefaultUpdatedAt = doctorDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// doctorDescID is the schema descriptor for id field.
+	doctorDescID := doctorFields[0].Descriptor()
+	// doctor.DefaultID holds the default value on creation for the id field.
+	doctor.DefaultID = doctorDescID.Default.(func() uuid.UUID)
+	doctorscheduleFields := schema.DoctorSchedule{}.Fields()
+	_ = doctorscheduleFields
+	// doctorscheduleDescAvailable is the schema descriptor for available field.
+	doctorscheduleDescAvailable := doctorscheduleFields[4].Descriptor()
+	// doctorschedule.DefaultAvailable holds the default value on creation for the available field.
+	doctorschedule.DefaultAvailable = doctorscheduleDescAvailable.Default.(bool)
+	// doctorscheduleDescCreatedAt is the schema descriptor for created_at field.
+	doctorscheduleDescCreatedAt := doctorscheduleFields[6].Descriptor()
+	// doctorschedule.DefaultCreatedAt holds the default value on creation for the created_at field.
+	doctorschedule.DefaultCreatedAt = doctorscheduleDescCreatedAt.Default.(func() time.Time)
+	// doctorscheduleDescID is the schema descriptor for id field.
+	doctorscheduleDescID := doctorscheduleFields[0].Descriptor()
+	// doctorschedule.DefaultID holds the default value on creation for the id field.
+	doctorschedule.DefaultID = doctorscheduleDescID.Default.(func() uuid.UUID)
+	documentFields := schema.Document{}.Fields()
+	_ = documentFields
+	// documentDescIsConfidential is the schema descriptor for is_confidential field.
+	documentDescIsConfidential := documentFields[8].Descriptor()
+	// document.DefaultIsConfidential holds the default value on creation for the is_confidential field.
+	document.DefaultIsConfidential = documentDescIsConfidential.Default.(bool)
+	// documentDescCreatedAt is the schema descriptor for created_at field.
+	documentDescCreatedAt := documentFields[9].Descriptor()
+	// document.DefaultCreatedAt holds the default value on creation for the created_at field.
+	document.DefaultCreatedAt = documentDescCreatedAt.Default.(func() time.Time)
+	// documentDescID is the schema descriptor for id field.
+	documentDescID := documentFields[0].Descriptor()
+	// document.DefaultID holds the default value on creation for the id field.
+	document.DefaultID = documentDescID.Default.(func() uuid.UUID)
+	featureFields := schema.Feature{}.Fields()
+	_ = featureFields
+	// featureDescMonthlyPrice is the schema descriptor for monthly_price field.
+	featureDescMonthlyPrice := featureFields[5].Descriptor()
+	// feature.DefaultMonthlyPrice holds the default value on creation for the monthly_price field.
+	feature.DefaultMonthlyPrice = featureDescMonthlyPrice.Default.(float64)
+	// featureDescActive is the schema descriptor for active field.
+	featureDescActive := featureFields[6].Descriptor()
+	// feature.DefaultActive holds the default value on creation for the active field.
+	feature.DefaultActive = featureDescActive.Default.(bool)
+	// featureDescCreatedAt is the schema descriptor for created_at field.
+	featureDescCreatedAt := featureFields[7].Descriptor()
+	// feature.DefaultCreatedAt holds the default value on creation for the created_at field.
+	feature.DefaultCreatedAt = featureDescCreatedAt.Default.(func() time.Time)
+	// featureDescID is the schema descriptor for id field.
+	featureDescID := featureFields[0].Descriptor()
+	// feature.DefaultID holds the default value on creation for the id field.
+	feature.DefaultID = featureDescID.Default.(func() uuid.UUID)
+	inventorymovementFields := schema.InventoryMovement{}.Fields()
+	_ = inventorymovementFields
+	// inventorymovementDescMovementDate is the schema descriptor for movement_date field.
+	inventorymovementDescMovementDate := inventorymovementFields[6].Descriptor()
+	// inventorymovement.DefaultMovementDate holds the default value on creation for the movement_date field.
+	inventorymovement.DefaultMovementDate = inventorymovementDescMovementDate.Default.(func() time.Time)
+	// inventorymovementDescCreatedAt is the schema descriptor for created_at field.
+	inventorymovementDescCreatedAt := inventorymovementFields[7].Descriptor()
+	// inventorymovement.DefaultCreatedAt holds the default value on creation for the created_at field.
+	inventorymovement.DefaultCreatedAt = inventorymovementDescCreatedAt.Default.(func() time.Time)
+	// inventorymovementDescID is the schema descriptor for id field.
+	inventorymovementDescID := inventorymovementFields[0].Descriptor()
+	// inventorymovement.DefaultID holds the default value on creation for the id field.
+	inventorymovement.DefaultID = inventorymovementDescID.Default.(func() uuid.UUID)
+	knowledgebaseFields := schema.KnowledgeBase{}.Fields()
+	_ = knowledgebaseFields
+	// knowledgebaseDescActive is the schema descriptor for active field.
+	knowledgebaseDescActive := knowledgebaseFields[6].Descriptor()
+	// knowledgebase.DefaultActive holds the default value on creation for the active field.
+	knowledgebase.DefaultActive = knowledgebaseDescActive.Default.(bool)
+	// knowledgebaseDescPriority is the schema descriptor for priority field.
+	knowledgebaseDescPriority := knowledgebaseFields[7].Descriptor()
+	// knowledgebase.DefaultPriority holds the default value on creation for the priority field.
+	knowledgebase.DefaultPriority = knowledgebaseDescPriority.Default.(int)
+	// knowledgebaseDescCreatedAt is the schema descriptor for created_at field.
+	knowledgebaseDescCreatedAt := knowledgebaseFields[8].Descriptor()
+	// knowledgebase.DefaultCreatedAt holds the default value on creation for the created_at field.
+	knowledgebase.DefaultCreatedAt = knowledgebaseDescCreatedAt.Default.(func() time.Time)
+	// knowledgebaseDescUpdatedAt is the schema descriptor for updated_at field.
+	knowledgebaseDescUpdatedAt := knowledgebaseFields[9].Descriptor()
+	// knowledgebase.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	knowledgebase.DefaultUpdatedAt = knowledgebaseDescUpdatedAt.Default.(func() time.Time)
+	// knowledgebase.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	knowledgebase.UpdateDefaultUpdatedAt = knowledgebaseDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// knowledgebaseDescID is the schema descriptor for id field.
+	knowledgebaseDescID := knowledgebaseFields[0].Descriptor()
+	// knowledgebase.DefaultID holds the default value on creation for the id field.
+	knowledgebase.DefaultID = knowledgebaseDescID.Default.(func() uuid.UUID)
+	orderFields := schema.Order{}.Fields()
+	_ = orderFields
+	// orderDescSubtotal is the schema descriptor for subtotal field.
+	orderDescSubtotal := orderFields[4].Descriptor()
+	// order.DefaultSubtotal holds the default value on creation for the subtotal field.
+	order.DefaultSubtotal = orderDescSubtotal.Default.(float64)
+	// orderDescTaxAmount is the schema descriptor for tax_amount field.
+	orderDescTaxAmount := orderFields[5].Descriptor()
+	// order.DefaultTaxAmount holds the default value on creation for the tax_amount field.
+	order.DefaultTaxAmount = orderDescTaxAmount.Default.(float64)
+	// orderDescDiscountAmount is the schema descriptor for discount_amount field.
+	orderDescDiscountAmount := orderFields[6].Descriptor()
+	// order.DefaultDiscountAmount holds the default value on creation for the discount_amount field.
+	order.DefaultDiscountAmount = orderDescDiscountAmount.Default.(float64)
+	// orderDescShippingCost is the schema descriptor for shipping_cost field.
+	orderDescShippingCost := orderFields[7].Descriptor()
+	// order.DefaultShippingCost holds the default value on creation for the shipping_cost field.
+	order.DefaultShippingCost = orderDescShippingCost.Default.(float64)
+	// orderDescTotalAmount is the schema descriptor for total_amount field.
+	orderDescTotalAmount := orderFields[8].Descriptor()
+	// order.DefaultTotalAmount holds the default value on creation for the total_amount field.
+	order.DefaultTotalAmount = orderDescTotalAmount.Default.(float64)
+	// orderDescCurrency is the schema descriptor for currency field.
+	orderDescCurrency := orderFields[9].Descriptor()
+	// order.DefaultCurrency holds the default value on creation for the currency field.
+	order.DefaultCurrency = orderDescCurrency.Default.(string)
+	// orderDescCreatedAt is the schema descriptor for created_at field.
+	orderDescCreatedAt := orderFields[19].Descriptor()
+	// order.DefaultCreatedAt holds the default value on creation for the created_at field.
+	order.DefaultCreatedAt = orderDescCreatedAt.Default.(func() time.Time)
+	// orderDescUpdatedAt is the schema descriptor for updated_at field.
+	orderDescUpdatedAt := orderFields[20].Descriptor()
+	// order.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	order.DefaultUpdatedAt = orderDescUpdatedAt.Default.(func() time.Time)
+	// order.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	order.UpdateDefaultUpdatedAt = orderDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderDescID is the schema descriptor for id field.
+	orderDescID := orderFields[0].Descriptor()
+	// order.DefaultID holds the default value on creation for the id field.
+	order.DefaultID = orderDescID.Default.(func() uuid.UUID)
+	orderitemFields := schema.OrderItem{}.Fields()
+	_ = orderitemFields
+	// orderitemDescQuantity is the schema descriptor for quantity field.
+	orderitemDescQuantity := orderitemFields[4].Descriptor()
+	// orderitem.DefaultQuantity holds the default value on creation for the quantity field.
+	orderitem.DefaultQuantity = orderitemDescQuantity.Default.(int)
+	// orderitemDescDiscountAmount is the schema descriptor for discount_amount field.
+	orderitemDescDiscountAmount := orderitemFields[6].Descriptor()
+	// orderitem.DefaultDiscountAmount holds the default value on creation for the discount_amount field.
+	orderitem.DefaultDiscountAmount = orderitemDescDiscountAmount.Default.(float64)
+	// orderitemDescCreatedAt is the schema descriptor for created_at field.
+	orderitemDescCreatedAt := orderitemFields[9].Descriptor()
+	// orderitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderitem.DefaultCreatedAt = orderitemDescCreatedAt.Default.(func() time.Time)
+	// orderitemDescID is the schema descriptor for id field.
+	orderitemDescID := orderitemFields[0].Descriptor()
+	// orderitem.DefaultID holds the default value on creation for the id field.
+	orderitem.DefaultID = orderitemDescID.Default.(func() uuid.UUID)
+	orderstatushistoryFields := schema.OrderStatusHistory{}.Fields()
+	_ = orderstatushistoryFields
+	// orderstatushistoryDescCreatedAt is the schema descriptor for created_at field.
+	orderstatushistoryDescCreatedAt := orderstatushistoryFields[4].Descriptor()
+	// orderstatushistory.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderstatushistory.DefaultCreatedAt = orderstatushistoryDescCreatedAt.Default.(func() time.Time)
+	// orderstatushistoryDescID is the schema descriptor for id field.
+	orderstatushistoryDescID := orderstatushistoryFields[0].Descriptor()
+	// orderstatushistory.DefaultID holds the default value on creation for the id field.
+	orderstatushistory.DefaultID = orderstatushistoryDescID.Default.(func() uuid.UUID)
+	patientFields := schema.Patient{}.Fields()
+	_ = patientFields
+	// patientDescActive is the schema descriptor for active field.
+	patientDescActive := patientFields[12].Descriptor()
+	// patient.DefaultActive holds the default value on creation for the active field.
+	patient.DefaultActive = patientDescActive.Default.(bool)
+	// patientDescCreatedAt is the schema descriptor for created_at field.
+	patientDescCreatedAt := patientFields[13].Descriptor()
+	// patient.DefaultCreatedAt holds the default value on creation for the created_at field.
+	patient.DefaultCreatedAt = patientDescCreatedAt.Default.(func() time.Time)
+	// patientDescUpdatedAt is the schema descriptor for updated_at field.
+	patientDescUpdatedAt := patientFields[14].Descriptor()
+	// patient.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	patient.DefaultUpdatedAt = patientDescUpdatedAt.Default.(func() time.Time)
+	// patient.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	patient.UpdateDefaultUpdatedAt = patientDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// patientDescID is the schema descriptor for id field.
+	patientDescID := patientFields[0].Descriptor()
+	// patient.DefaultID holds the default value on creation for the id field.
+	patient.DefaultID = patientDescID.Default.(func() uuid.UUID)
 	productFields := schema.Product{}.Fields()
 	_ = productFields
-	// productDescName is the schema descriptor for name field.
-	productDescName := productFields[1].Descriptor()
-	// product.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	product.NameValidator = productDescName.Validators[0].(func(string) error)
+	// productDescPurchasePrice is the schema descriptor for purchase_price field.
+	productDescPurchasePrice := productFields[7].Descriptor()
+	// product.DefaultPurchasePrice holds the default value on creation for the purchase_price field.
+	product.DefaultPurchasePrice = productDescPurchasePrice.Default.(float64)
+	// productDescSellingPrice is the schema descriptor for selling_price field.
+	productDescSellingPrice := productFields[8].Descriptor()
+	// product.DefaultSellingPrice holds the default value on creation for the selling_price field.
+	product.DefaultSellingPrice = productDescSellingPrice.Default.(float64)
+	// productDescUnit is the schema descriptor for unit field.
+	productDescUnit := productFields[10].Descriptor()
+	// product.DefaultUnit holds the default value on creation for the unit field.
+	product.DefaultUnit = productDescUnit.Default.(string)
+	// productDescMinStockLevel is the schema descriptor for min_stock_level field.
+	productDescMinStockLevel := productFields[11].Descriptor()
+	// product.DefaultMinStockLevel holds the default value on creation for the min_stock_level field.
+	product.DefaultMinStockLevel = productDescMinStockLevel.Default.(int)
+	// productDescCurrentStock is the schema descriptor for current_stock field.
+	productDescCurrentStock := productFields[12].Descriptor()
+	// product.DefaultCurrentStock holds the default value on creation for the current_stock field.
+	product.DefaultCurrentStock = productDescCurrentStock.Default.(int)
+	// productDescTrackInventory is the schema descriptor for track_inventory field.
+	productDescTrackInventory := productFields[13].Descriptor()
+	// product.DefaultTrackInventory holds the default value on creation for the track_inventory field.
+	product.DefaultTrackInventory = productDescTrackInventory.Default.(bool)
+	// productDescPrescriptionRequired is the schema descriptor for prescription_required field.
+	productDescPrescriptionRequired := productFields[14].Descriptor()
+	// product.DefaultPrescriptionRequired holds the default value on creation for the prescription_required field.
+	product.DefaultPrescriptionRequired = productDescPrescriptionRequired.Default.(bool)
+	// productDescFeatured is the schema descriptor for featured field.
+	productDescFeatured := productFields[24].Descriptor()
+	// product.DefaultFeatured holds the default value on creation for the featured field.
+	product.DefaultFeatured = productDescFeatured.Default.(bool)
 	// productDescCreatedAt is the schema descriptor for created_at field.
-	productDescCreatedAt := productFields[6].Descriptor()
+	productDescCreatedAt := productFields[25].Descriptor()
 	// product.DefaultCreatedAt holds the default value on creation for the created_at field.
 	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
 	// productDescUpdatedAt is the schema descriptor for updated_at field.
-	productDescUpdatedAt := productFields[7].Descriptor()
+	productDescUpdatedAt := productFields[26].Descriptor()
+	// product.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	product.DefaultUpdatedAt = productDescUpdatedAt.Default.(func() time.Time)
 	// product.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	product.UpdateDefaultUpdatedAt = productDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// productDescID is the schema descriptor for id field.
 	productDescID := productFields[0].Descriptor()
 	// product.DefaultID holds the default value on creation for the id field.
 	product.DefaultID = productDescID.Default.(func() uuid.UUID)
+	productcategoryFields := schema.ProductCategory{}.Fields()
+	_ = productcategoryFields
+	// productcategoryDescActive is the schema descriptor for active field.
+	productcategoryDescActive := productcategoryFields[4].Descriptor()
+	// productcategory.DefaultActive holds the default value on creation for the active field.
+	productcategory.DefaultActive = productcategoryDescActive.Default.(bool)
+	// productcategoryDescSortOrder is the schema descriptor for sort_order field.
+	productcategoryDescSortOrder := productcategoryFields[5].Descriptor()
+	// productcategory.DefaultSortOrder holds the default value on creation for the sort_order field.
+	productcategory.DefaultSortOrder = productcategoryDescSortOrder.Default.(int)
+	// productcategoryDescCreatedAt is the schema descriptor for created_at field.
+	productcategoryDescCreatedAt := productcategoryFields[6].Descriptor()
+	// productcategory.DefaultCreatedAt holds the default value on creation for the created_at field.
+	productcategory.DefaultCreatedAt = productcategoryDescCreatedAt.Default.(func() time.Time)
+	// productcategoryDescUpdatedAt is the schema descriptor for updated_at field.
+	productcategoryDescUpdatedAt := productcategoryFields[7].Descriptor()
+	// productcategory.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	productcategory.DefaultUpdatedAt = productcategoryDescUpdatedAt.Default.(func() time.Time)
+	// productcategory.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	productcategory.UpdateDefaultUpdatedAt = productcategoryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// productcategoryDescID is the schema descriptor for id field.
+	productcategoryDescID := productcategoryFields[0].Descriptor()
+	// productcategory.DefaultID holds the default value on creation for the id field.
+	productcategory.DefaultID = productcategoryDescID.Default.(func() uuid.UUID)
+	queueentryFields := schema.QueueEntry{}.Fields()
+	_ = queueentryFields
+	// queueentryDescCreatedAt is the schema descriptor for created_at field.
+	queueentryDescCreatedAt := queueentryFields[11].Descriptor()
+	// queueentry.DefaultCreatedAt holds the default value on creation for the created_at field.
+	queueentry.DefaultCreatedAt = queueentryDescCreatedAt.Default.(func() time.Time)
+	// queueentryDescUpdatedAt is the schema descriptor for updated_at field.
+	queueentryDescUpdatedAt := queueentryFields[12].Descriptor()
+	// queueentry.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	queueentry.DefaultUpdatedAt = queueentryDescUpdatedAt.Default.(func() time.Time)
+	// queueentry.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	queueentry.UpdateDefaultUpdatedAt = queueentryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// queueentryDescID is the schema descriptor for id field.
+	queueentryDescID := queueentryFields[0].Descriptor()
+	// queueentry.DefaultID holds the default value on creation for the id field.
+	queueentry.DefaultID = queueentryDescID.Default.(func() uuid.UUID)
+	serviceFields := schema.Service{}.Fields()
+	_ = serviceFields
+	// serviceDescPrice is the schema descriptor for price field.
+	serviceDescPrice := serviceFields[4].Descriptor()
+	// service.DefaultPrice holds the default value on creation for the price field.
+	service.DefaultPrice = serviceDescPrice.Default.(float64)
+	// serviceDescDuration is the schema descriptor for duration field.
+	serviceDescDuration := serviceFields[5].Descriptor()
+	// service.DefaultDuration holds the default value on creation for the duration field.
+	service.DefaultDuration = serviceDescDuration.Default.(int)
+	// serviceDescRequiresAppointment is the schema descriptor for requires_appointment field.
+	serviceDescRequiresAppointment := serviceFields[7].Descriptor()
+	// service.DefaultRequiresAppointment holds the default value on creation for the requires_appointment field.
+	service.DefaultRequiresAppointment = serviceDescRequiresAppointment.Default.(bool)
+	// serviceDescActive is the schema descriptor for active field.
+	serviceDescActive := serviceFields[8].Descriptor()
+	// service.DefaultActive holds the default value on creation for the active field.
+	service.DefaultActive = serviceDescActive.Default.(bool)
+	// serviceDescCreatedAt is the schema descriptor for created_at field.
+	serviceDescCreatedAt := serviceFields[9].Descriptor()
+	// service.DefaultCreatedAt holds the default value on creation for the created_at field.
+	service.DefaultCreatedAt = serviceDescCreatedAt.Default.(func() time.Time)
+	// serviceDescUpdatedAt is the schema descriptor for updated_at field.
+	serviceDescUpdatedAt := serviceFields[10].Descriptor()
+	// service.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	service.DefaultUpdatedAt = serviceDescUpdatedAt.Default.(func() time.Time)
+	// service.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	service.UpdateDefaultUpdatedAt = serviceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// serviceDescID is the schema descriptor for id field.
+	serviceDescID := serviceFields[0].Descriptor()
+	// service.DefaultID holds the default value on creation for the id field.
+	service.DefaultID = serviceDescID.Default.(func() uuid.UUID)
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescRefreshToken is the schema descriptor for refresh_token field.
@@ -93,20 +533,16 @@ func init() {
 	session.DefaultID = sessionDescID.Default.(func() uuid.UUID)
 	userFields := schema.User{}.Fields()
 	_ = userFields
-	// userDescEmail is the schema descriptor for email field.
-	userDescEmail := userFields[1].Descriptor()
-	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
-	// userDescPasswordHash is the schema descriptor for password_hash field.
-	userDescPasswordHash := userFields[4].Descriptor()
-	// user.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
-	user.PasswordHashValidator = userDescPasswordHash.Validators[0].(func(string) error)
+	// userDescActive is the schema descriptor for active field.
+	userDescActive := userFields[6].Descriptor()
+	// user.DefaultActive holds the default value on creation for the active field.
+	user.DefaultActive = userDescActive.Default.(bool)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[6].Descriptor()
+	userDescCreatedAt := userFields[7].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[7].Descriptor()
+	userDescUpdatedAt := userFields[8].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

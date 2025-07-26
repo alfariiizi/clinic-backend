@@ -13,7 +13,27 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/adminauditlog"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/aiinteraction"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/appointment"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/appointmentreminder"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/billingrecord"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatmessage"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatthread"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctor"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctorschedule"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/document"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/feature"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/inventorymovement"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/knowledgebase"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/order"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/orderitem"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/orderstatushistory"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/patient"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/product"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/productcategory"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/queueentry"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/service"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/session"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
 )
@@ -76,10 +96,30 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			adminauditlog.Table: adminauditlog.ValidColumn,
-			product.Table:       product.ValidColumn,
-			session.Table:       session.ValidColumn,
-			user.Table:          user.ValidColumn,
+			aiinteraction.Table:       aiinteraction.ValidColumn,
+			adminauditlog.Table:       adminauditlog.ValidColumn,
+			appointment.Table:         appointment.ValidColumn,
+			appointmentreminder.Table: appointmentreminder.ValidColumn,
+			billingrecord.Table:       billingrecord.ValidColumn,
+			chatmessage.Table:         chatmessage.ValidColumn,
+			chatthread.Table:          chatthread.ValidColumn,
+			clinic.Table:              clinic.ValidColumn,
+			doctor.Table:              doctor.ValidColumn,
+			doctorschedule.Table:      doctorschedule.ValidColumn,
+			document.Table:            document.ValidColumn,
+			feature.Table:             feature.ValidColumn,
+			inventorymovement.Table:   inventorymovement.ValidColumn,
+			knowledgebase.Table:       knowledgebase.ValidColumn,
+			order.Table:               order.ValidColumn,
+			orderitem.Table:           orderitem.ValidColumn,
+			orderstatushistory.Table:  orderstatushistory.ValidColumn,
+			patient.Table:             patient.ValidColumn,
+			product.Table:             product.ValidColumn,
+			productcategory.Table:     productcategory.ValidColumn,
+			queueentry.Table:          queueentry.ValidColumn,
+			service.Table:             service.ValidColumn,
+			session.Table:             session.ValidColumn,
+			user.Table:                user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/predicate"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/product"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/session"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
 	"github.com/google/uuid"
@@ -26,8 +26,9 @@ type UserQuery struct {
 	order        []user.OrderOption
 	inters       []Interceptor
 	predicates   []predicate.User
-	withProducts *ProductQuery
 	withSessions *SessionQuery
+	withClinic   *ClinicQuery
+	withFKs      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -64,28 +65,6 @@ func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	return uq
 }
 
-// QueryProducts chains the current query on the "products" edge.
-func (uq *UserQuery) QueryProducts() *ProductQuery {
-	query := (&ProductClient{config: uq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := uq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := uq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(product.Table, product.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.ProductsTable, user.ProductsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QuerySessions chains the current query on the "sessions" edge.
 func (uq *UserQuery) QuerySessions() *SessionQuery {
 	query := (&SessionClient{config: uq.config}).Query()
@@ -101,6 +80,28 @@ func (uq *UserQuery) QuerySessions() *SessionQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(session.Table, session.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.SessionsTable, user.SessionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryClinic chains the current query on the "clinic" edge.
+func (uq *UserQuery) QueryClinic() *ClinicQuery {
+	query := (&ClinicClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(clinic.Table, clinic.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.ClinicTable, user.ClinicColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -300,23 +301,12 @@ func (uq *UserQuery) Clone() *UserQuery {
 		order:        append([]user.OrderOption{}, uq.order...),
 		inters:       append([]Interceptor{}, uq.inters...),
 		predicates:   append([]predicate.User{}, uq.predicates...),
-		withProducts: uq.withProducts.Clone(),
 		withSessions: uq.withSessions.Clone(),
+		withClinic:   uq.withClinic.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
 	}
-}
-
-// WithProducts tells the query-builder to eager-load the nodes that are connected to
-// the "products" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithProducts(opts ...func(*ProductQuery)) *UserQuery {
-	query := (&ProductClient{config: uq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	uq.withProducts = query
-	return uq
 }
 
 // WithSessions tells the query-builder to eager-load the nodes that are connected to
@@ -327,6 +317,17 @@ func (uq *UserQuery) WithSessions(opts ...func(*SessionQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withSessions = query
+	return uq
+}
+
+// WithClinic tells the query-builder to eager-load the nodes that are connected to
+// the "clinic" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithClinic(opts ...func(*ClinicQuery)) *UserQuery {
+	query := (&ClinicClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withClinic = query
 	return uq
 }
 
@@ -407,12 +408,19 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
 		nodes       = []*User{}
+		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
 		loadedTypes = [2]bool{
-			uq.withProducts != nil,
 			uq.withSessions != nil,
+			uq.withClinic != nil,
 		}
 	)
+	if uq.withClinic != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
 	}
@@ -431,13 +439,6 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := uq.withProducts; query != nil {
-		if err := uq.loadProducts(ctx, query, nodes,
-			func(n *User) { n.Edges.Products = []*Product{} },
-			func(n *User, e *Product) { n.Edges.Products = append(n.Edges.Products, e) }); err != nil {
-			return nil, err
-		}
-	}
 	if query := uq.withSessions; query != nil {
 		if err := uq.loadSessions(ctx, query, nodes,
 			func(n *User) { n.Edges.Sessions = []*Session{} },
@@ -445,39 +446,15 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withClinic; query != nil {
+		if err := uq.loadClinic(ctx, query, nodes, nil,
+			func(n *User, e *Clinic) { n.Edges.Clinic = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (uq *UserQuery) loadProducts(ctx context.Context, query *ProductQuery, nodes []*User, init func(*User), assign func(*User, *Product)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(product.FieldCreatorID)
-	}
-	query.Where(predicate.Product(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.ProductsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.CreatorID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "creator_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (uq *UserQuery) loadSessions(ctx context.Context, query *SessionQuery, nodes []*User, init func(*User), assign func(*User, *Session)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
@@ -505,6 +482,38 @@ func (uq *UserQuery) loadSessions(ctx context.Context, query *SessionQuery, node
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadClinic(ctx context.Context, query *ClinicQuery, nodes []*User, init func(*User), assign func(*User, *Clinic)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*User)
+	for i := range nodes {
+		if nodes[i].clinic_users == nil {
+			continue
+		}
+		fk := *nodes[i].clinic_users
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(clinic.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "clinic_users" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

@@ -3,6 +3,7 @@
 package product
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -15,43 +16,134 @@ const (
 	Label = "product"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldSku holds the string denoting the sku field in the database.
+	FieldSku = "sku"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldShortDescription holds the string denoting the short_description field in the database.
+	FieldShortDescription = "short_description"
 	// FieldBrand holds the string denoting the brand field in the database.
 	FieldBrand = "brand"
-	// FieldCategory holds the string denoting the category field in the database.
-	FieldCategory = "category"
-	// FieldPrice holds the string denoting the price field in the database.
-	FieldPrice = "price"
-	// FieldCreatorID holds the string denoting the creator_id field in the database.
-	FieldCreatorID = "creator_id"
+	// FieldImages holds the string denoting the images field in the database.
+	FieldImages = "images"
+	// FieldPurchasePrice holds the string denoting the purchase_price field in the database.
+	FieldPurchasePrice = "purchase_price"
+	// FieldSellingPrice holds the string denoting the selling_price field in the database.
+	FieldSellingPrice = "selling_price"
+	// FieldDiscountPrice holds the string denoting the discount_price field in the database.
+	FieldDiscountPrice = "discount_price"
+	// FieldUnit holds the string denoting the unit field in the database.
+	FieldUnit = "unit"
+	// FieldMinStockLevel holds the string denoting the min_stock_level field in the database.
+	FieldMinStockLevel = "min_stock_level"
+	// FieldCurrentStock holds the string denoting the current_stock field in the database.
+	FieldCurrentStock = "current_stock"
+	// FieldTrackInventory holds the string denoting the track_inventory field in the database.
+	FieldTrackInventory = "track_inventory"
+	// FieldPrescriptionRequired holds the string denoting the prescription_required field in the database.
+	FieldPrescriptionRequired = "prescription_required"
+	// FieldSpecifications holds the string denoting the specifications field in the database.
+	FieldSpecifications = "specifications"
+	// FieldUsageInstructions holds the string denoting the usage_instructions field in the database.
+	FieldUsageInstructions = "usage_instructions"
+	// FieldWarnings holds the string denoting the warnings field in the database.
+	FieldWarnings = "warnings"
+	// FieldExpiryDate holds the string denoting the expiry_date field in the database.
+	FieldExpiryDate = "expiry_date"
+	// FieldBatchNumber holds the string denoting the batch_number field in the database.
+	FieldBatchNumber = "batch_number"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
+	// FieldWeight holds the string denoting the weight field in the database.
+	FieldWeight = "weight"
+	// FieldDimensions holds the string denoting the dimensions field in the database.
+	FieldDimensions = "dimensions"
+	// FieldFeatured holds the string denoting the featured field in the database.
+	FieldFeatured = "featured"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeUser holds the string denoting the user edge name in mutations.
-	EdgeUser = "user"
+	// EdgeClinic holds the string denoting the clinic edge name in mutations.
+	EdgeClinic = "clinic"
+	// EdgeCategory holds the string denoting the category edge name in mutations.
+	EdgeCategory = "category"
+	// EdgeInventoryMovements holds the string denoting the inventory_movements edge name in mutations.
+	EdgeInventoryMovements = "inventory_movements"
+	// EdgeOrderItems holds the string denoting the order_items edge name in mutations.
+	EdgeOrderItems = "order_items"
 	// Table holds the table name of the product in the database.
 	Table = "products"
-	// UserTable is the table that holds the user relation/edge.
-	UserTable = "products"
-	// UserInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UserInverseTable = "users"
-	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "creator_id"
+	// ClinicTable is the table that holds the clinic relation/edge.
+	ClinicTable = "products"
+	// ClinicInverseTable is the table name for the Clinic entity.
+	// It exists in this package in order to avoid circular dependency with the "clinic" package.
+	ClinicInverseTable = "clinics"
+	// ClinicColumn is the table column denoting the clinic relation/edge.
+	ClinicColumn = "clinic_products"
+	// CategoryTable is the table that holds the category relation/edge.
+	CategoryTable = "products"
+	// CategoryInverseTable is the table name for the ProductCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "productcategory" package.
+	CategoryInverseTable = "product_categories"
+	// CategoryColumn is the table column denoting the category relation/edge.
+	CategoryColumn = "product_category_products"
+	// InventoryMovementsTable is the table that holds the inventory_movements relation/edge.
+	InventoryMovementsTable = "inventory_movements"
+	// InventoryMovementsInverseTable is the table name for the InventoryMovement entity.
+	// It exists in this package in order to avoid circular dependency with the "inventorymovement" package.
+	InventoryMovementsInverseTable = "inventory_movements"
+	// InventoryMovementsColumn is the table column denoting the inventory_movements relation/edge.
+	InventoryMovementsColumn = "product_inventory_movements"
+	// OrderItemsTable is the table that holds the order_items relation/edge.
+	OrderItemsTable = "order_items"
+	// OrderItemsInverseTable is the table name for the OrderItem entity.
+	// It exists in this package in order to avoid circular dependency with the "orderitem" package.
+	OrderItemsInverseTable = "order_items"
+	// OrderItemsColumn is the table column denoting the order_items relation/edge.
+	OrderItemsColumn = "product_order_items"
 )
 
 // Columns holds all SQL columns for product fields.
 var Columns = []string{
 	FieldID,
+	FieldSku,
 	FieldName,
+	FieldDescription,
+	FieldShortDescription,
 	FieldBrand,
-	FieldCategory,
-	FieldPrice,
-	FieldCreatorID,
+	FieldImages,
+	FieldPurchasePrice,
+	FieldSellingPrice,
+	FieldDiscountPrice,
+	FieldUnit,
+	FieldMinStockLevel,
+	FieldCurrentStock,
+	FieldTrackInventory,
+	FieldPrescriptionRequired,
+	FieldSpecifications,
+	FieldUsageInstructions,
+	FieldWarnings,
+	FieldExpiryDate,
+	FieldBatchNumber,
+	FieldStatus,
+	FieldTags,
+	FieldWeight,
+	FieldDimensions,
+	FieldFeatured,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "products"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"clinic_products",
+	"product_category_products",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -61,19 +153,68 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
 
 var (
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
+	// DefaultPurchasePrice holds the default value on creation for the "purchase_price" field.
+	DefaultPurchasePrice float64
+	// DefaultSellingPrice holds the default value on creation for the "selling_price" field.
+	DefaultSellingPrice float64
+	// DefaultUnit holds the default value on creation for the "unit" field.
+	DefaultUnit string
+	// DefaultMinStockLevel holds the default value on creation for the "min_stock_level" field.
+	DefaultMinStockLevel int
+	// DefaultCurrentStock holds the default value on creation for the "current_stock" field.
+	DefaultCurrentStock int
+	// DefaultTrackInventory holds the default value on creation for the "track_inventory" field.
+	DefaultTrackInventory bool
+	// DefaultPrescriptionRequired holds the default value on creation for the "prescription_required" field.
+	DefaultPrescriptionRequired bool
+	// DefaultFeatured holds the default value on creation for the "featured" field.
+	DefaultFeatured bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusACTIVE is the default value of the Status enum.
+const DefaultStatus = StatusACTIVE
+
+// Status values.
+const (
+	StatusACTIVE       Status = "ACTIVE"
+	StatusINACTIVE     Status = "INACTIVE"
+	StatusOUT_OF_STOCK Status = "OUT_OF_STOCK"
+	StatusDISCONTINUED Status = "DISCONTINUED"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusACTIVE, StatusINACTIVE, StatusOUT_OF_STOCK, StatusDISCONTINUED:
+		return nil
+	default:
+		return fmt.Errorf("product: invalid enum value for status field: %q", s)
+	}
+}
 
 // OrderOption defines the ordering options for the Product queries.
 type OrderOption func(*sql.Selector)
@@ -83,9 +224,24 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// BySku orders the results by the sku field.
+func BySku(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSku, opts...).ToFunc()
+}
+
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByShortDescription orders the results by the short_description field.
+func ByShortDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShortDescription, opts...).ToFunc()
 }
 
 // ByBrand orders the results by the brand field.
@@ -93,19 +249,69 @@ func ByBrand(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBrand, opts...).ToFunc()
 }
 
-// ByCategory orders the results by the category field.
-func ByCategory(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCategory, opts...).ToFunc()
+// ByPurchasePrice orders the results by the purchase_price field.
+func ByPurchasePrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPurchasePrice, opts...).ToFunc()
 }
 
-// ByPrice orders the results by the price field.
-func ByPrice(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPrice, opts...).ToFunc()
+// BySellingPrice orders the results by the selling_price field.
+func BySellingPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSellingPrice, opts...).ToFunc()
 }
 
-// ByCreatorID orders the results by the creator_id field.
-func ByCreatorID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreatorID, opts...).ToFunc()
+// ByDiscountPrice orders the results by the discount_price field.
+func ByDiscountPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDiscountPrice, opts...).ToFunc()
+}
+
+// ByUnit orders the results by the unit field.
+func ByUnit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnit, opts...).ToFunc()
+}
+
+// ByMinStockLevel orders the results by the min_stock_level field.
+func ByMinStockLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMinStockLevel, opts...).ToFunc()
+}
+
+// ByCurrentStock orders the results by the current_stock field.
+func ByCurrentStock(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrentStock, opts...).ToFunc()
+}
+
+// ByTrackInventory orders the results by the track_inventory field.
+func ByTrackInventory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTrackInventory, opts...).ToFunc()
+}
+
+// ByPrescriptionRequired orders the results by the prescription_required field.
+func ByPrescriptionRequired(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPrescriptionRequired, opts...).ToFunc()
+}
+
+// ByExpiryDate orders the results by the expiry_date field.
+func ByExpiryDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExpiryDate, opts...).ToFunc()
+}
+
+// ByBatchNumber orders the results by the batch_number field.
+func ByBatchNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBatchNumber, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByWeight orders the results by the weight field.
+func ByWeight(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWeight, opts...).ToFunc()
+}
+
+// ByFeatured orders the results by the featured field.
+func ByFeatured(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeatured, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.
@@ -118,16 +324,72 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByUserField orders the results by user field.
-func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByClinicField orders the results by clinic field.
+func ByClinicField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newClinicStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newUserStep() *sqlgraph.Step {
+
+// ByCategoryField orders the results by category field.
+func ByCategoryField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCategoryStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByInventoryMovementsCount orders the results by inventory_movements count.
+func ByInventoryMovementsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newInventoryMovementsStep(), opts...)
+	}
+}
+
+// ByInventoryMovements orders the results by inventory_movements terms.
+func ByInventoryMovements(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInventoryMovementsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOrderItemsCount orders the results by order_items count.
+func ByOrderItemsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderItemsStep(), opts...)
+	}
+}
+
+// ByOrderItems orders the results by order_items terms.
+func ByOrderItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newClinicStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		sqlgraph.To(ClinicInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ClinicTable, ClinicColumn),
+	)
+}
+func newCategoryStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CategoryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
+	)
+}
+func newInventoryMovementsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InventoryMovementsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InventoryMovementsTable, InventoryMovementsColumn),
+	)
+}
+func newOrderItemsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderItemsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderItemsTable, OrderItemsColumn),
 	)
 }

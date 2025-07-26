@@ -12,10 +12,50 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AIInteraction is the client for interacting with the AIInteraction builders.
+	AIInteraction *AIInteractionClient
 	// AdminAuditLog is the client for interacting with the AdminAuditLog builders.
 	AdminAuditLog *AdminAuditLogClient
+	// Appointment is the client for interacting with the Appointment builders.
+	Appointment *AppointmentClient
+	// AppointmentReminder is the client for interacting with the AppointmentReminder builders.
+	AppointmentReminder *AppointmentReminderClient
+	// BillingRecord is the client for interacting with the BillingRecord builders.
+	BillingRecord *BillingRecordClient
+	// ChatMessage is the client for interacting with the ChatMessage builders.
+	ChatMessage *ChatMessageClient
+	// ChatThread is the client for interacting with the ChatThread builders.
+	ChatThread *ChatThreadClient
+	// Clinic is the client for interacting with the Clinic builders.
+	Clinic *ClinicClient
+	// Doctor is the client for interacting with the Doctor builders.
+	Doctor *DoctorClient
+	// DoctorSchedule is the client for interacting with the DoctorSchedule builders.
+	DoctorSchedule *DoctorScheduleClient
+	// Document is the client for interacting with the Document builders.
+	Document *DocumentClient
+	// Feature is the client for interacting with the Feature builders.
+	Feature *FeatureClient
+	// InventoryMovement is the client for interacting with the InventoryMovement builders.
+	InventoryMovement *InventoryMovementClient
+	// KnowledgeBase is the client for interacting with the KnowledgeBase builders.
+	KnowledgeBase *KnowledgeBaseClient
+	// Order is the client for interacting with the Order builders.
+	Order *OrderClient
+	// OrderItem is the client for interacting with the OrderItem builders.
+	OrderItem *OrderItemClient
+	// OrderStatusHistory is the client for interacting with the OrderStatusHistory builders.
+	OrderStatusHistory *OrderStatusHistoryClient
+	// Patient is the client for interacting with the Patient builders.
+	Patient *PatientClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
+	// ProductCategory is the client for interacting with the ProductCategory builders.
+	ProductCategory *ProductCategoryClient
+	// QueueEntry is the client for interacting with the QueueEntry builders.
+	QueueEntry *QueueEntryClient
+	// Service is the client for interacting with the Service builders.
+	Service *ServiceClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// User is the client for interacting with the User builders.
@@ -151,8 +191,28 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AIInteraction = NewAIInteractionClient(tx.config)
 	tx.AdminAuditLog = NewAdminAuditLogClient(tx.config)
+	tx.Appointment = NewAppointmentClient(tx.config)
+	tx.AppointmentReminder = NewAppointmentReminderClient(tx.config)
+	tx.BillingRecord = NewBillingRecordClient(tx.config)
+	tx.ChatMessage = NewChatMessageClient(tx.config)
+	tx.ChatThread = NewChatThreadClient(tx.config)
+	tx.Clinic = NewClinicClient(tx.config)
+	tx.Doctor = NewDoctorClient(tx.config)
+	tx.DoctorSchedule = NewDoctorScheduleClient(tx.config)
+	tx.Document = NewDocumentClient(tx.config)
+	tx.Feature = NewFeatureClient(tx.config)
+	tx.InventoryMovement = NewInventoryMovementClient(tx.config)
+	tx.KnowledgeBase = NewKnowledgeBaseClient(tx.config)
+	tx.Order = NewOrderClient(tx.config)
+	tx.OrderItem = NewOrderItemClient(tx.config)
+	tx.OrderStatusHistory = NewOrderStatusHistoryClient(tx.config)
+	tx.Patient = NewPatientClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
+	tx.ProductCategory = NewProductCategoryClient(tx.config)
+	tx.QueueEntry = NewQueueEntryClient(tx.config)
+	tx.Service = NewServiceClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
@@ -164,7 +224,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AdminAuditLog.QueryXXX(), the query will be executed
+// applies a query, for example: AIInteraction.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

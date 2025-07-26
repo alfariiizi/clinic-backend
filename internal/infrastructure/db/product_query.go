@@ -4,6 +4,7 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,20 +12,27 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/inventorymovement"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/orderitem"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/predicate"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/product"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/productcategory"
 	"github.com/google/uuid"
 )
 
 // ProductQuery is the builder for querying Product entities.
 type ProductQuery struct {
 	config
-	ctx        *QueryContext
-	order      []product.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Product
-	withUser   *UserQuery
+	ctx                    *QueryContext
+	order                  []product.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.Product
+	withClinic             *ClinicQuery
+	withCategory           *ProductCategoryQuery
+	withInventoryMovements *InventoryMovementQuery
+	withOrderItems         *OrderItemQuery
+	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -61,9 +69,9 @@ func (pq *ProductQuery) Order(o ...product.OrderOption) *ProductQuery {
 	return pq
 }
 
-// QueryUser chains the current query on the "user" edge.
-func (pq *ProductQuery) QueryUser() *UserQuery {
-	query := (&UserClient{config: pq.config}).Query()
+// QueryClinic chains the current query on the "clinic" edge.
+func (pq *ProductQuery) QueryClinic() *ClinicQuery {
+	query := (&ClinicClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -74,8 +82,74 @@ func (pq *ProductQuery) QueryUser() *UserQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(product.Table, product.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, product.UserTable, product.UserColumn),
+			sqlgraph.To(clinic.Table, clinic.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, product.ClinicTable, product.ClinicColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCategory chains the current query on the "category" edge.
+func (pq *ProductQuery) QueryCategory() *ProductCategoryQuery {
+	query := (&ProductCategoryClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(productcategory.Table, productcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, product.CategoryTable, product.CategoryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInventoryMovements chains the current query on the "inventory_movements" edge.
+func (pq *ProductQuery) QueryInventoryMovements() *InventoryMovementQuery {
+	query := (&InventoryMovementClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(inventorymovement.Table, inventorymovement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.InventoryMovementsTable, product.InventoryMovementsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderItems chains the current query on the "order_items" edge.
+func (pq *ProductQuery) QueryOrderItems() *OrderItemQuery {
+	query := (&OrderItemClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(orderitem.Table, orderitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.OrderItemsTable, product.OrderItemsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,26 +344,62 @@ func (pq *ProductQuery) Clone() *ProductQuery {
 		return nil
 	}
 	return &ProductQuery{
-		config:     pq.config,
-		ctx:        pq.ctx.Clone(),
-		order:      append([]product.OrderOption{}, pq.order...),
-		inters:     append([]Interceptor{}, pq.inters...),
-		predicates: append([]predicate.Product{}, pq.predicates...),
-		withUser:   pq.withUser.Clone(),
+		config:                 pq.config,
+		ctx:                    pq.ctx.Clone(),
+		order:                  append([]product.OrderOption{}, pq.order...),
+		inters:                 append([]Interceptor{}, pq.inters...),
+		predicates:             append([]predicate.Product{}, pq.predicates...),
+		withClinic:             pq.withClinic.Clone(),
+		withCategory:           pq.withCategory.Clone(),
+		withInventoryMovements: pq.withInventoryMovements.Clone(),
+		withOrderItems:         pq.withOrderItems.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
 }
 
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProductQuery) WithUser(opts ...func(*UserQuery)) *ProductQuery {
-	query := (&UserClient{config: pq.config}).Query()
+// WithClinic tells the query-builder to eager-load the nodes that are connected to
+// the "clinic" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithClinic(opts ...func(*ClinicQuery)) *ProductQuery {
+	query := (&ClinicClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withUser = query
+	pq.withClinic = query
+	return pq
+}
+
+// WithCategory tells the query-builder to eager-load the nodes that are connected to
+// the "category" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithCategory(opts ...func(*ProductCategoryQuery)) *ProductQuery {
+	query := (&ProductCategoryClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withCategory = query
+	return pq
+}
+
+// WithInventoryMovements tells the query-builder to eager-load the nodes that are connected to
+// the "inventory_movements" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithInventoryMovements(opts ...func(*InventoryMovementQuery)) *ProductQuery {
+	query := (&InventoryMovementClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withInventoryMovements = query
+	return pq
+}
+
+// WithOrderItems tells the query-builder to eager-load the nodes that are connected to
+// the "order_items" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithOrderItems(opts ...func(*OrderItemQuery)) *ProductQuery {
+	query := (&OrderItemClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withOrderItems = query
 	return pq
 }
 
@@ -299,12 +409,12 @@ func (pq *ProductQuery) WithUser(opts ...func(*UserQuery)) *ProductQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Sku string `json:"sku,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Product.Query().
-//		GroupBy(product.FieldName).
+//		GroupBy(product.FieldSku).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (pq *ProductQuery) GroupBy(field string, fields ...string) *ProductGroupBy {
@@ -322,11 +432,11 @@ func (pq *ProductQuery) GroupBy(field string, fields ...string) *ProductGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Sku string `json:"sku,omitempty"`
 //	}
 //
 //	client.Product.Query().
-//		Select(product.FieldName).
+//		Select(product.FieldSku).
 //		Scan(ctx, &v)
 func (pq *ProductQuery) Select(fields ...string) *ProductSelect {
 	pq.ctx.Fields = append(pq.ctx.Fields, fields...)
@@ -370,11 +480,21 @@ func (pq *ProductQuery) prepareQuery(ctx context.Context) error {
 func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Product, error) {
 	var (
 		nodes       = []*Product{}
+		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [1]bool{
-			pq.withUser != nil,
+		loadedTypes = [4]bool{
+			pq.withClinic != nil,
+			pq.withCategory != nil,
+			pq.withInventoryMovements != nil,
+			pq.withOrderItems != nil,
 		}
 	)
+	if pq.withClinic != nil || pq.withCategory != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, product.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Product).scanValues(nil, columns)
 	}
@@ -393,20 +513,45 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := pq.withUser; query != nil {
-		if err := pq.loadUser(ctx, query, nodes, nil,
-			func(n *Product, e *User) { n.Edges.User = e }); err != nil {
+	if query := pq.withClinic; query != nil {
+		if err := pq.loadClinic(ctx, query, nodes, nil,
+			func(n *Product, e *Clinic) { n.Edges.Clinic = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withCategory; query != nil {
+		if err := pq.loadCategory(ctx, query, nodes, nil,
+			func(n *Product, e *ProductCategory) { n.Edges.Category = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withInventoryMovements; query != nil {
+		if err := pq.loadInventoryMovements(ctx, query, nodes,
+			func(n *Product) { n.Edges.InventoryMovements = []*InventoryMovement{} },
+			func(n *Product, e *InventoryMovement) {
+				n.Edges.InventoryMovements = append(n.Edges.InventoryMovements, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withOrderItems; query != nil {
+		if err := pq.loadOrderItems(ctx, query, nodes,
+			func(n *Product) { n.Edges.OrderItems = []*OrderItem{} },
+			func(n *Product, e *OrderItem) { n.Edges.OrderItems = append(n.Edges.OrderItems, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (pq *ProductQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Product, init func(*Product), assign func(*Product, *User)) error {
+func (pq *ProductQuery) loadClinic(ctx context.Context, query *ClinicQuery, nodes []*Product, init func(*Product), assign func(*Product, *Clinic)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Product)
 	for i := range nodes {
-		fk := nodes[i].CreatorID
+		if nodes[i].clinic_products == nil {
+			continue
+		}
+		fk := *nodes[i].clinic_products
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -415,7 +560,7 @@ func (pq *ProductQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(user.IDIn(ids...))
+	query.Where(clinic.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -423,11 +568,105 @@ func (pq *ProductQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "creator_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "clinic_products" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (pq *ProductQuery) loadCategory(ctx context.Context, query *ProductCategoryQuery, nodes []*Product, init func(*Product), assign func(*Product, *ProductCategory)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Product)
+	for i := range nodes {
+		if nodes[i].product_category_products == nil {
+			continue
+		}
+		fk := *nodes[i].product_category_products
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(productcategory.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "product_category_products" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (pq *ProductQuery) loadInventoryMovements(ctx context.Context, query *InventoryMovementQuery, nodes []*Product, init func(*Product), assign func(*Product, *InventoryMovement)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Product)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.InventoryMovement(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(product.InventoryMovementsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.product_inventory_movements
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "product_inventory_movements" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "product_inventory_movements" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProductQuery) loadOrderItems(ctx context.Context, query *OrderItemQuery, nodes []*Product, init func(*Product), assign func(*Product, *OrderItem)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Product)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.OrderItem(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(product.OrderItemsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.product_order_items
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "product_order_items" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "product_order_items" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -456,9 +695,6 @@ func (pq *ProductQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != product.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if pq.withUser != nil {
-			_spec.Node.AddColumnOnce(product.FieldCreatorID)
 		}
 	}
 	if ps := pq.predicates; len(ps) > 0 {

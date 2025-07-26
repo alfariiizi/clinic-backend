@@ -8,6 +8,48 @@ import (
 )
 
 var (
+	// AiInteractionsColumns holds the columns for the "ai_interactions" table.
+	AiInteractionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "clinic_id", Type: field.TypeString},
+		{Name: "patient_whatsapp", Type: field.TypeString, Nullable: true},
+		{Name: "interaction_type", Type: field.TypeEnum, Enums: []string{"CHAT", "TOOL_CALL", "RECOMMENDATION"}, Default: "CHAT"},
+		{Name: "request_payload", Type: field.TypeJSON},
+		{Name: "response_payload", Type: field.TypeJSON},
+		{Name: "ai_model", Type: field.TypeString, Nullable: true},
+		{Name: "response_time_ms", Type: field.TypeInt, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"SUCCESS", "ERROR", "TIMEOUT"}, Default: "SUCCESS"},
+		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// AiInteractionsTable holds the schema information for the "ai_interactions" table.
+	AiInteractionsTable = &schema.Table{
+		Name:       "ai_interactions",
+		Columns:    AiInteractionsColumns,
+		PrimaryKey: []*schema.Column{AiInteractionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "aiinteraction_clinic_id",
+				Unique:  false,
+				Columns: []*schema.Column{AiInteractionsColumns[1]},
+			},
+			{
+				Name:    "aiinteraction_interaction_type",
+				Unique:  false,
+				Columns: []*schema.Column{AiInteractionsColumns[3]},
+			},
+			{
+				Name:    "aiinteraction_status",
+				Unique:  false,
+				Columns: []*schema.Column{AiInteractionsColumns[8]},
+			},
+			{
+				Name:    "aiinteraction_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AiInteractionsColumns[10]},
+			},
+		},
+	}
 	// AdminAuditLogsColumns holds the columns for the "admin_audit_logs" table.
 	AdminAuditLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -28,16 +70,744 @@ var (
 		Columns:    AdminAuditLogsColumns,
 		PrimaryKey: []*schema.Column{AdminAuditLogsColumns[0]},
 	}
+	// AppointmentsColumns holds the columns for the "appointments" table.
+	AppointmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "appointment_date", Type: field.TypeTime},
+		{Name: "start_time", Type: field.TypeTime},
+		{Name: "end_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"SCHEDULED", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED", "NO_SHOW"}, Default: "SCHEDULED"},
+		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "symptoms", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "diagnosis", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "treatment_plan", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "prescriptions", Type: field.TypeJSON, Nullable: true},
+		{Name: "total_cost", Type: field.TypeFloat64, Nullable: true},
+		{Name: "payment_status", Type: field.TypeEnum, Enums: []string{"PENDING", "PAID", "PARTIAL", "CANCELLED"}, Default: "PENDING"},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_appointments", Type: field.TypeUUID, Nullable: true},
+		{Name: "doctor_appointments", Type: field.TypeUUID, Nullable: true},
+		{Name: "patient_appointments", Type: field.TypeUUID, Nullable: true},
+		{Name: "service_appointments", Type: field.TypeUUID},
+	}
+	// AppointmentsTable holds the schema information for the "appointments" table.
+	AppointmentsTable = &schema.Table{
+		Name:       "appointments",
+		Columns:    AppointmentsColumns,
+		PrimaryKey: []*schema.Column{AppointmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "appointments_clinics_appointments",
+				Columns:    []*schema.Column{AppointmentsColumns[14]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "appointments_doctors_appointments",
+				Columns:    []*schema.Column{AppointmentsColumns[15]},
+				RefColumns: []*schema.Column{DoctorsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "appointments_patients_appointments",
+				Columns:    []*schema.Column{AppointmentsColumns[16]},
+				RefColumns: []*schema.Column{PatientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "appointments_services_appointments",
+				Columns:    []*schema.Column{AppointmentsColumns[17]},
+				RefColumns: []*schema.Column{ServicesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "appointment_appointment_date_start_time",
+				Unique:  false,
+				Columns: []*schema.Column{AppointmentsColumns[1], AppointmentsColumns[2]},
+			},
+			{
+				Name:    "appointment_status",
+				Unique:  false,
+				Columns: []*schema.Column{AppointmentsColumns[4]},
+			},
+		},
+	}
+	// AppointmentRemindersColumns holds the columns for the "appointment_reminders" table.
+	AppointmentRemindersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"SMS", "WHATSAPP", "EMAIL"}},
+		{Name: "scheduled_time", Type: field.TypeTime},
+		{Name: "message", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "SENT", "FAILED"}, Default: "PENDING"},
+		{Name: "sent_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "appointment_reminders", Type: field.TypeUUID, Nullable: true},
+	}
+	// AppointmentRemindersTable holds the schema information for the "appointment_reminders" table.
+	AppointmentRemindersTable = &schema.Table{
+		Name:       "appointment_reminders",
+		Columns:    AppointmentRemindersColumns,
+		PrimaryKey: []*schema.Column{AppointmentRemindersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "appointment_reminders_appointments_reminders",
+				Columns:    []*schema.Column{AppointmentRemindersColumns[7]},
+				RefColumns: []*schema.Column{AppointmentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// BillingRecordsColumns holds the columns for the "billing_records" table.
+	BillingRecordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "invoice_number", Type: field.TypeString, Unique: true},
+		{Name: "amount", Type: field.TypeFloat64},
+		{Name: "tax_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "discount_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "total_amount", Type: field.TypeFloat64},
+		{Name: "currency", Type: field.TypeString, Default: "IDR"},
+		{Name: "payment_method", Type: field.TypeEnum, Nullable: true, Enums: []string{"CASH", "CREDIT_CARD", "DEBIT_CARD", "BANK_TRANSFER", "DIGITAL_WALLET"}},
+		{Name: "payment_status", Type: field.TypeEnum, Enums: []string{"PENDING", "PAID", "PARTIAL", "OVERDUE", "CANCELLED"}, Default: "PENDING"},
+		{Name: "line_items", Type: field.TypeJSON, Nullable: true},
+		{Name: "due_date", Type: field.TypeTime, Nullable: true},
+		{Name: "paid_at", Type: field.TypeTime, Nullable: true},
+		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_billing_records", Type: field.TypeUUID, Nullable: true},
+		{Name: "patient_billing_records", Type: field.TypeUUID, Nullable: true},
+	}
+	// BillingRecordsTable holds the schema information for the "billing_records" table.
+	BillingRecordsTable = &schema.Table{
+		Name:       "billing_records",
+		Columns:    BillingRecordsColumns,
+		PrimaryKey: []*schema.Column{BillingRecordsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "billing_records_clinics_billing_records",
+				Columns:    []*schema.Column{BillingRecordsColumns[15]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "billing_records_patients_billing_records",
+				Columns:    []*schema.Column{BillingRecordsColumns[16]},
+				RefColumns: []*schema.Column{PatientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "billingrecord_invoice_number",
+				Unique:  false,
+				Columns: []*schema.Column{BillingRecordsColumns[1]},
+			},
+			{
+				Name:    "billingrecord_payment_status",
+				Unique:  false,
+				Columns: []*schema.Column{BillingRecordsColumns[8]},
+			},
+			{
+				Name:    "billingrecord_due_date",
+				Unique:  false,
+				Columns: []*schema.Column{BillingRecordsColumns[10]},
+			},
+		},
+	}
+	// ChatMessagesColumns holds the columns for the "chat_messages" table.
+	ChatMessagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "whatsapp_message_id", Type: field.TypeString, Nullable: true},
+		{Name: "sender_type", Type: field.TypeEnum, Enums: []string{"PATIENT", "AI", "STAFF", "DOCTOR"}},
+		{Name: "message_type", Type: field.TypeEnum, Enums: []string{"TEXT", "IMAGE", "DOCUMENT", "AUDIO", "LOCATION"}, Default: "TEXT"},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "ai_tool_call", Type: field.TypeString, Nullable: true},
+		{Name: "ai_tool_result", Type: field.TypeJSON, Nullable: true},
+		{Name: "is_read", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "chat_thread_messages", Type: field.TypeUUID, Nullable: true},
+	}
+	// ChatMessagesTable holds the schema information for the "chat_messages" table.
+	ChatMessagesTable = &schema.Table{
+		Name:       "chat_messages",
+		Columns:    ChatMessagesColumns,
+		PrimaryKey: []*schema.Column{ChatMessagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "chat_messages_chat_threads_messages",
+				Columns:    []*schema.Column{ChatMessagesColumns[10]},
+				RefColumns: []*schema.Column{ChatThreadsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "chatmessage_whatsapp_message_id",
+				Unique:  false,
+				Columns: []*schema.Column{ChatMessagesColumns[1]},
+			},
+			{
+				Name:    "chatmessage_sender_type",
+				Unique:  false,
+				Columns: []*schema.Column{ChatMessagesColumns[2]},
+			},
+			{
+				Name:    "chatmessage_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ChatMessagesColumns[9]},
+			},
+		},
+	}
+	// ChatThreadsColumns holds the columns for the "chat_threads" table.
+	ChatThreadsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "whatsapp_thread_id", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "CLOSED", "ARCHIVED"}, Default: "ACTIVE"},
+		{Name: "context", Type: field.TypeJSON, Nullable: true},
+		{Name: "last_message_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_chat_threads", Type: field.TypeUUID, Nullable: true},
+		{Name: "patient_chat_threads", Type: field.TypeUUID, Nullable: true},
+	}
+	// ChatThreadsTable holds the schema information for the "chat_threads" table.
+	ChatThreadsTable = &schema.Table{
+		Name:       "chat_threads",
+		Columns:    ChatThreadsColumns,
+		PrimaryKey: []*schema.Column{ChatThreadsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "chat_threads_clinics_chat_threads",
+				Columns:    []*schema.Column{ChatThreadsColumns[7]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "chat_threads_patients_chat_threads",
+				Columns:    []*schema.Column{ChatThreadsColumns[8]},
+				RefColumns: []*schema.Column{PatientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "chatthread_whatsapp_thread_id",
+				Unique:  false,
+				Columns: []*schema.Column{ChatThreadsColumns[1]},
+			},
+			{
+				Name:    "chatthread_status",
+				Unique:  false,
+				Columns: []*schema.Column{ChatThreadsColumns[2]},
+			},
+			{
+				Name:    "chatthread_last_message_at",
+				Unique:  false,
+				Columns: []*schema.Column{ChatThreadsColumns[4]},
+			},
+		},
+	}
+	// ClinicsColumns holds the columns for the "clinics" table.
+	ClinicsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeString},
+		{Name: "phone", Type: field.TypeString, Nullable: true},
+		{Name: "email", Type: field.TypeString, Nullable: true},
+		{Name: "address", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "business_hours", Type: field.TypeJSON, Nullable: true},
+		{Name: "whatsapp_number", Type: field.TypeString, Nullable: true},
+		{Name: "subscription_plan", Type: field.TypeString, Default: "basic"},
+		{Name: "enabled_features", Type: field.TypeJSON},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ClinicsTable holds the schema information for the "clinics" table.
+	ClinicsTable = &schema.Table{
+		Name:       "clinics",
+		Columns:    ClinicsColumns,
+		PrimaryKey: []*schema.Column{ClinicsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "clinic_whatsapp_number",
+				Unique:  false,
+				Columns: []*schema.Column{ClinicsColumns[7]},
+			},
+			{
+				Name:    "clinic_active",
+				Unique:  false,
+				Columns: []*schema.Column{ClinicsColumns[10]},
+			},
+		},
+	}
+	// DoctorsColumns holds the columns for the "doctors" table.
+	DoctorsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "specialization", Type: field.TypeString},
+		{Name: "license_number", Type: field.TypeString, Nullable: true},
+		{Name: "email", Type: field.TypeString, Nullable: true},
+		{Name: "phone", Type: field.TypeString, Nullable: true},
+		{Name: "bio", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "qualifications", Type: field.TypeJSON, Nullable: true},
+		{Name: "availability", Type: field.TypeJSON},
+		{Name: "consultation_duration", Type: field.TypeInt, Default: 30},
+		{Name: "consultation_fee", Type: field.TypeFloat64, Default: 0},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_doctors", Type: field.TypeUUID, Nullable: true},
+	}
+	// DoctorsTable holds the schema information for the "doctors" table.
+	DoctorsTable = &schema.Table{
+		Name:       "doctors",
+		Columns:    DoctorsColumns,
+		PrimaryKey: []*schema.Column{DoctorsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "doctors_clinics_doctors",
+				Columns:    []*schema.Column{DoctorsColumns[14]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// DoctorSchedulesColumns holds the columns for the "doctor_schedules" table.
+	DoctorSchedulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "date", Type: field.TypeTime},
+		{Name: "start_time", Type: field.TypeTime},
+		{Name: "end_time", Type: field.TypeTime},
+		{Name: "available", Type: field.TypeBool, Default: true},
+		{Name: "notes", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "doctor_schedules", Type: field.TypeUUID, Nullable: true},
+	}
+	// DoctorSchedulesTable holds the schema information for the "doctor_schedules" table.
+	DoctorSchedulesTable = &schema.Table{
+		Name:       "doctor_schedules",
+		Columns:    DoctorSchedulesColumns,
+		PrimaryKey: []*schema.Column{DoctorSchedulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "doctor_schedules_doctors_schedules",
+				Columns:    []*schema.Column{DoctorSchedulesColumns[7]},
+				RefColumns: []*schema.Column{DoctorsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "doctorschedule_date_start_time",
+				Unique:  false,
+				Columns: []*schema.Column{DoctorSchedulesColumns[1], DoctorSchedulesColumns[2]},
+			},
+		},
+	}
+	// DocumentsColumns holds the columns for the "documents" table.
+	DocumentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"LAB_RESULT", "PRESCRIPTION", "MEDICAL_RECORD", "IMAGE", "CONSENT_FORM", "INSURANCE"}, Default: "MEDICAL_RECORD"},
+		{Name: "file_path", Type: field.TypeString},
+		{Name: "file_type", Type: field.TypeString},
+		{Name: "file_size", Type: field.TypeInt64},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "document_date", Type: field.TypeTime, Nullable: true},
+		{Name: "is_confidential", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "clinic_documents", Type: field.TypeUUID, Nullable: true},
+		{Name: "patient_documents", Type: field.TypeUUID, Nullable: true},
+	}
+	// DocumentsTable holds the schema information for the "documents" table.
+	DocumentsTable = &schema.Table{
+		Name:       "documents",
+		Columns:    DocumentsColumns,
+		PrimaryKey: []*schema.Column{DocumentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "documents_clinics_documents",
+				Columns:    []*schema.Column{DocumentsColumns[10]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "documents_patients_documents",
+				Columns:    []*schema.Column{DocumentsColumns[11]},
+				RefColumns: []*schema.Column{PatientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "document_type",
+				Unique:  false,
+				Columns: []*schema.Column{DocumentsColumns[2]},
+			},
+			{
+				Name:    "document_document_date",
+				Unique:  false,
+				Columns: []*schema.Column{DocumentsColumns[7]},
+			},
+		},
+	}
+	// FeaturesColumns holds the columns for the "features" table.
+	FeaturesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "category", Type: field.TypeEnum, Enums: []string{"CORE", "AI", "BILLING", "COMMUNICATION", "ANALYTICS"}, Default: "CORE"},
+		{Name: "monthly_price", Type: field.TypeFloat64, Default: 0},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// FeaturesTable holds the schema information for the "features" table.
+	FeaturesTable = &schema.Table{
+		Name:       "features",
+		Columns:    FeaturesColumns,
+		PrimaryKey: []*schema.Column{FeaturesColumns[0]},
+	}
+	// InventoryMovementsColumns holds the columns for the "inventory_movements" table.
+	InventoryMovementsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"PURCHASE", "SALE", "ADJUSTMENT", "RETURN", "DAMAGE", "EXPIRED"}, Default: "SALE"},
+		{Name: "quantity", Type: field.TypeInt},
+		{Name: "reference_id", Type: field.TypeString, Nullable: true},
+		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "performed_by", Type: field.TypeString, Nullable: true},
+		{Name: "movement_date", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "clinic_inventory_movements", Type: field.TypeUUID, Nullable: true},
+		{Name: "product_inventory_movements", Type: field.TypeUUID, Nullable: true},
+	}
+	// InventoryMovementsTable holds the schema information for the "inventory_movements" table.
+	InventoryMovementsTable = &schema.Table{
+		Name:       "inventory_movements",
+		Columns:    InventoryMovementsColumns,
+		PrimaryKey: []*schema.Column{InventoryMovementsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "inventory_movements_clinics_inventory_movements",
+				Columns:    []*schema.Column{InventoryMovementsColumns[8]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "inventory_movements_products_inventory_movements",
+				Columns:    []*schema.Column{InventoryMovementsColumns[9]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inventorymovement_type",
+				Unique:  false,
+				Columns: []*schema.Column{InventoryMovementsColumns[1]},
+			},
+			{
+				Name:    "inventorymovement_movement_date",
+				Unique:  false,
+				Columns: []*schema.Column{InventoryMovementsColumns[6]},
+			},
+			{
+				Name:    "inventorymovement_reference_id",
+				Unique:  false,
+				Columns: []*schema.Column{InventoryMovementsColumns[3]},
+			},
+		},
+	}
+	// KnowledgeBasesColumns holds the columns for the "knowledge_bases" table.
+	KnowledgeBasesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "category", Type: field.TypeEnum, Enums: []string{"FAQ", "SERVICE", "POLICY", "PROCEDURE", "PRODUCT"}, Default: "FAQ"},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "tags", Type: field.TypeJSON, Nullable: true},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "priority", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_knowledge_base", Type: field.TypeUUID, Nullable: true},
+	}
+	// KnowledgeBasesTable holds the schema information for the "knowledge_bases" table.
+	KnowledgeBasesTable = &schema.Table{
+		Name:       "knowledge_bases",
+		Columns:    KnowledgeBasesColumns,
+		PrimaryKey: []*schema.Column{KnowledgeBasesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "knowledge_bases_clinics_knowledge_base",
+				Columns:    []*schema.Column{KnowledgeBasesColumns[10]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "knowledgebase_category",
+				Unique:  false,
+				Columns: []*schema.Column{KnowledgeBasesColumns[2]},
+			},
+			{
+				Name:    "knowledgebase_active",
+				Unique:  false,
+				Columns: []*schema.Column{KnowledgeBasesColumns[6]},
+			},
+			{
+				Name:    "knowledgebase_priority",
+				Unique:  false,
+				Columns: []*schema.Column{KnowledgeBasesColumns[7]},
+			},
+		},
+	}
+	// OrdersColumns holds the columns for the "orders" table.
+	OrdersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "order_number", Type: field.TypeString, Unique: true},
+		{Name: "order_type", Type: field.TypeEnum, Enums: []string{"PRODUCT_ONLY", "SERVICE_ONLY", "MIXED"}, Default: "MIXED"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "PENDING", "CONFIRMED", "PROCESSING", "READY", "COMPLETED", "CANCELLED"}, Default: "PENDING"},
+		{Name: "subtotal", Type: field.TypeFloat64, Default: 0},
+		{Name: "tax_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "discount_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "shipping_cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "total_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "currency", Type: field.TypeString, Default: "IDR"},
+		{Name: "payment_status", Type: field.TypeEnum, Enums: []string{"PENDING", "PAID", "PARTIAL", "REFUNDED", "CANCELLED"}, Default: "PENDING"},
+		{Name: "payment_method", Type: field.TypeEnum, Nullable: true, Enums: []string{"CASH", "CREDIT_CARD", "DEBIT_CARD", "BANK_TRANSFER", "DIGITAL_WALLET"}},
+		{Name: "shipping_address", Type: field.TypeJSON, Nullable: true},
+		{Name: "billing_address", Type: field.TypeJSON, Nullable: true},
+		{Name: "delivery_method", Type: field.TypeEnum, Enums: []string{"PICKUP", "DELIVERY", "SHIPPING"}, Default: "PICKUP"},
+		{Name: "expected_delivery_date", Type: field.TypeTime, Nullable: true},
+		{Name: "delivered_at", Type: field.TypeTime, Nullable: true},
+		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_orders", Type: field.TypeUUID, Nullable: true},
+		{Name: "patient_orders", Type: field.TypeUUID, Nullable: true},
+	}
+	// OrdersTable holds the schema information for the "orders" table.
+	OrdersTable = &schema.Table{
+		Name:       "orders",
+		Columns:    OrdersColumns,
+		PrimaryKey: []*schema.Column{OrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "orders_clinics_orders",
+				Columns:    []*schema.Column{OrdersColumns[21]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "orders_patients_orders",
+				Columns:    []*schema.Column{OrdersColumns[22]},
+				RefColumns: []*schema.Column{PatientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "order_order_number",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[1]},
+			},
+			{
+				Name:    "order_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[3]},
+			},
+			{
+				Name:    "order_payment_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[10]},
+			},
+			{
+				Name:    "order_order_type",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[2]},
+			},
+			{
+				Name:    "order_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[19]},
+			},
+		},
+	}
+	// OrderItemsColumns holds the columns for the "order_items" table.
+	OrderItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "item_type", Type: field.TypeEnum, Enums: []string{"PRODUCT", "SERVICE"}, Default: "PRODUCT"},
+		{Name: "item_name", Type: field.TypeString},
+		{Name: "item_description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "quantity", Type: field.TypeInt, Default: 1},
+		{Name: "unit_price", Type: field.TypeFloat64},
+		{Name: "discount_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "total_price", Type: field.TypeFloat64},
+		{Name: "item_metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "appointment_order_items", Type: field.TypeUUID, Nullable: true},
+		{Name: "order_order_items", Type: field.TypeUUID, Nullable: true},
+		{Name: "product_order_items", Type: field.TypeUUID, Nullable: true},
+		{Name: "service_order_items", Type: field.TypeUUID, Nullable: true},
+	}
+	// OrderItemsTable holds the schema information for the "order_items" table.
+	OrderItemsTable = &schema.Table{
+		Name:       "order_items",
+		Columns:    OrderItemsColumns,
+		PrimaryKey: []*schema.Column{OrderItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_items_appointments_order_items",
+				Columns:    []*schema.Column{OrderItemsColumns[10]},
+				RefColumns: []*schema.Column{AppointmentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "order_items_orders_order_items",
+				Columns:    []*schema.Column{OrderItemsColumns[11]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "order_items_products_order_items",
+				Columns:    []*schema.Column{OrderItemsColumns[12]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "order_items_services_order_items",
+				Columns:    []*schema.Column{OrderItemsColumns[13]},
+				RefColumns: []*schema.Column{ServicesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderitem_item_type",
+				Unique:  false,
+				Columns: []*schema.Column{OrderItemsColumns[1]},
+			},
+		},
+	}
+	// OrderStatusHistoriesColumns holds the columns for the "order_status_histories" table.
+	OrderStatusHistoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "status", Type: field.TypeString},
+		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "changed_by", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "order_order_status_history", Type: field.TypeUUID, Nullable: true},
+	}
+	// OrderStatusHistoriesTable holds the schema information for the "order_status_histories" table.
+	OrderStatusHistoriesTable = &schema.Table{
+		Name:       "order_status_histories",
+		Columns:    OrderStatusHistoriesColumns,
+		PrimaryKey: []*schema.Column{OrderStatusHistoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_status_histories_orders_order_status_history",
+				Columns:    []*schema.Column{OrderStatusHistoriesColumns[5]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderstatushistory_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrderStatusHistoriesColumns[1]},
+			},
+			{
+				Name:    "orderstatushistory_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderStatusHistoriesColumns[4]},
+			},
+		},
+	}
+	// PatientsColumns holds the columns for the "patients" table.
+	PatientsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "whatsapp_number", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "email", Type: field.TypeString, Nullable: true},
+		{Name: "phone", Type: field.TypeString, Nullable: true},
+		{Name: "birth_date", Type: field.TypeTime, Nullable: true},
+		{Name: "gender", Type: field.TypeEnum, Nullable: true, Enums: []string{"MALE", "FEMALE", "OTHER"}},
+		{Name: "address", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "medical_history", Type: field.TypeJSON, Nullable: true},
+		{Name: "allergies", Type: field.TypeJSON, Nullable: true},
+		{Name: "emergency_contact_name", Type: field.TypeString, Nullable: true},
+		{Name: "emergency_contact_phone", Type: field.TypeString, Nullable: true},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_patients", Type: field.TypeUUID, Nullable: true},
+	}
+	// PatientsTable holds the schema information for the "patients" table.
+	PatientsTable = &schema.Table{
+		Name:       "patients",
+		Columns:    PatientsColumns,
+		PrimaryKey: []*schema.Column{PatientsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "patients_clinics_patients",
+				Columns:    []*schema.Column{PatientsColumns[15]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "patient_whatsapp_number",
+				Unique:  false,
+				Columns: []*schema.Column{PatientsColumns[1]},
+			},
+			{
+				Name:    "patient_email",
+				Unique:  false,
+				Columns: []*schema.Column{PatientsColumns[3]},
+			},
+		},
+	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "sku", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
-		{Name: "brand", Type: field.TypeString},
-		{Name: "category", Type: field.TypeString},
-		{Name: "price", Type: field.TypeFloat64},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "short_description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "brand", Type: field.TypeString, Nullable: true},
+		{Name: "images", Type: field.TypeJSON, Nullable: true},
+		{Name: "purchase_price", Type: field.TypeFloat64, Default: 0},
+		{Name: "selling_price", Type: field.TypeFloat64, Default: 0},
+		{Name: "discount_price", Type: field.TypeFloat64, Nullable: true},
+		{Name: "unit", Type: field.TypeString, Default: "pcs"},
+		{Name: "min_stock_level", Type: field.TypeInt, Default: 0},
+		{Name: "current_stock", Type: field.TypeInt, Default: 0},
+		{Name: "track_inventory", Type: field.TypeBool, Default: true},
+		{Name: "prescription_required", Type: field.TypeBool, Default: false},
+		{Name: "specifications", Type: field.TypeJSON, Nullable: true},
+		{Name: "usage_instructions", Type: field.TypeJSON, Nullable: true},
+		{Name: "warnings", Type: field.TypeJSON, Nullable: true},
+		{Name: "expiry_date", Type: field.TypeTime, Nullable: true},
+		{Name: "batch_number", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "INACTIVE", "OUT_OF_STOCK", "DISCONTINUED"}, Default: "ACTIVE"},
+		{Name: "tags", Type: field.TypeJSON, Nullable: true},
+		{Name: "weight", Type: field.TypeFloat64, Nullable: true},
+		{Name: "dimensions", Type: field.TypeJSON, Nullable: true},
+		{Name: "featured", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "creator_id", Type: field.TypeUUID},
+		{Name: "clinic_products", Type: field.TypeUUID, Nullable: true},
+		{Name: "product_category_products", Type: field.TypeUUID},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{
@@ -46,10 +816,149 @@ var (
 		PrimaryKey: []*schema.Column{ProductsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "products_users_products",
-				Columns:    []*schema.Column{ProductsColumns[7]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
+				Symbol:     "products_clinics_products",
+				Columns:    []*schema.Column{ProductsColumns[27]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "products_product_categories_products",
+				Columns:    []*schema.Column{ProductsColumns[28]},
+				RefColumns: []*schema.Column{ProductCategoriesColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "product_sku",
+				Unique:  false,
+				Columns: []*schema.Column{ProductsColumns[1]},
+			},
+			{
+				Name:    "product_status",
+				Unique:  false,
+				Columns: []*schema.Column{ProductsColumns[20]},
+			},
+			{
+				Name:    "product_current_stock",
+				Unique:  false,
+				Columns: []*schema.Column{ProductsColumns[12]},
+			},
+			{
+				Name:    "product_featured",
+				Unique:  false,
+				Columns: []*schema.Column{ProductsColumns[24]},
+			},
+			{
+				Name:    "product_prescription_required",
+				Unique:  false,
+				Columns: []*schema.Column{ProductsColumns[14]},
+			},
+		},
+	}
+	// ProductCategoriesColumns holds the columns for the "product_categories" table.
+	ProductCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "image_url", Type: field.TypeString, Nullable: true},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_product_categories", Type: field.TypeUUID, Nullable: true},
+	}
+	// ProductCategoriesTable holds the schema information for the "product_categories" table.
+	ProductCategoriesTable = &schema.Table{
+		Name:       "product_categories",
+		Columns:    ProductCategoriesColumns,
+		PrimaryKey: []*schema.Column{ProductCategoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "product_categories_clinics_product_categories",
+				Columns:    []*schema.Column{ProductCategoriesColumns[8]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "productcategory_active",
+				Unique:  false,
+				Columns: []*schema.Column{ProductCategoriesColumns[4]},
+			},
+			{
+				Name:    "productcategory_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{ProductCategoriesColumns[5]},
+			},
+		},
+	}
+	// QueueEntriesColumns holds the columns for the "queue_entries" table.
+	QueueEntriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "clinic_id", Type: field.TypeString},
+		{Name: "patient_id", Type: field.TypeString},
+		{Name: "doctor_id", Type: field.TypeString, Nullable: true},
+		{Name: "service_id", Type: field.TypeString, Nullable: true},
+		{Name: "queue_number", Type: field.TypeInt},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"WAITING", "CALLED", "IN_PROGRESS", "COMPLETED", "CANCELLED"}, Default: "WAITING"},
+		{Name: "estimated_time", Type: field.TypeTime, Nullable: true},
+		{Name: "called_at", Type: field.TypeTime, Nullable: true},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// QueueEntriesTable holds the schema information for the "queue_entries" table.
+	QueueEntriesTable = &schema.Table{
+		Name:       "queue_entries",
+		Columns:    QueueEntriesColumns,
+		PrimaryKey: []*schema.Column{QueueEntriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "queueentry_clinic_id_queue_number",
+				Unique:  false,
+				Columns: []*schema.Column{QueueEntriesColumns[1], QueueEntriesColumns[5]},
+			},
+			{
+				Name:    "queueentry_status",
+				Unique:  false,
+				Columns: []*schema.Column{QueueEntriesColumns[6]},
+			},
+			{
+				Name:    "queueentry_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{QueueEntriesColumns[11]},
+			},
+		},
+	}
+	// ServicesColumns holds the columns for the "services" table.
+	ServicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "category", Type: field.TypeString, Nullable: true},
+		{Name: "price", Type: field.TypeFloat64, Default: 0},
+		{Name: "duration", Type: field.TypeInt, Default: 30},
+		{Name: "requirements", Type: field.TypeJSON, Nullable: true},
+		{Name: "requires_appointment", Type: field.TypeBool, Default: true},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_services", Type: field.TypeUUID, Nullable: true},
+	}
+	// ServicesTable holds the schema information for the "services" table.
+	ServicesTable = &schema.Table{
+		Name:       "services",
+		Columns:    ServicesColumns,
+		PrimaryKey: []*schema.Column{ServicesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "services_clinics_services",
+				Columns:    []*schema.Column{ServicesColumns[11]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -85,29 +994,100 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "email", Type: field.TypeString, Unique: true},
-		{Name: "first_name", Type: field.TypeString},
-		{Name: "last_name", Type: field.TypeString},
 		{Name: "password_hash", Type: field.TypeString},
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"USER", "ADMIN", "SUPERADMIN"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"ADMIN", "STAFF", "DOCTOR"}},
+		{Name: "phone", Type: field.TypeString, Nullable: true},
+		{Name: "active", Type: field.TypeBool, Default: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "clinic_users", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_clinics_users",
+				Columns:    []*schema.Column{UsersColumns[9]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "user_email",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[1]},
+			},
+			{
+				Name:    "user_role",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[4]},
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AiInteractionsTable,
 		AdminAuditLogsTable,
+		AppointmentsTable,
+		AppointmentRemindersTable,
+		BillingRecordsTable,
+		ChatMessagesTable,
+		ChatThreadsTable,
+		ClinicsTable,
+		DoctorsTable,
+		DoctorSchedulesTable,
+		DocumentsTable,
+		FeaturesTable,
+		InventoryMovementsTable,
+		KnowledgeBasesTable,
+		OrdersTable,
+		OrderItemsTable,
+		OrderStatusHistoriesTable,
+		PatientsTable,
 		ProductsTable,
+		ProductCategoriesTable,
+		QueueEntriesTable,
+		ServicesTable,
 		SessionsTable,
 		UsersTable,
 	}
 )
 
 func init() {
-	ProductsTable.ForeignKeys[0].RefTable = UsersTable
+	AppointmentsTable.ForeignKeys[0].RefTable = ClinicsTable
+	AppointmentsTable.ForeignKeys[1].RefTable = DoctorsTable
+	AppointmentsTable.ForeignKeys[2].RefTable = PatientsTable
+	AppointmentsTable.ForeignKeys[3].RefTable = ServicesTable
+	AppointmentRemindersTable.ForeignKeys[0].RefTable = AppointmentsTable
+	BillingRecordsTable.ForeignKeys[0].RefTable = ClinicsTable
+	BillingRecordsTable.ForeignKeys[1].RefTable = PatientsTable
+	ChatMessagesTable.ForeignKeys[0].RefTable = ChatThreadsTable
+	ChatThreadsTable.ForeignKeys[0].RefTable = ClinicsTable
+	ChatThreadsTable.ForeignKeys[1].RefTable = PatientsTable
+	DoctorsTable.ForeignKeys[0].RefTable = ClinicsTable
+	DoctorSchedulesTable.ForeignKeys[0].RefTable = DoctorsTable
+	DocumentsTable.ForeignKeys[0].RefTable = ClinicsTable
+	DocumentsTable.ForeignKeys[1].RefTable = PatientsTable
+	InventoryMovementsTable.ForeignKeys[0].RefTable = ClinicsTable
+	InventoryMovementsTable.ForeignKeys[1].RefTable = ProductsTable
+	KnowledgeBasesTable.ForeignKeys[0].RefTable = ClinicsTable
+	OrdersTable.ForeignKeys[0].RefTable = ClinicsTable
+	OrdersTable.ForeignKeys[1].RefTable = PatientsTable
+	OrderItemsTable.ForeignKeys[0].RefTable = AppointmentsTable
+	OrderItemsTable.ForeignKeys[1].RefTable = OrdersTable
+	OrderItemsTable.ForeignKeys[2].RefTable = ProductsTable
+	OrderItemsTable.ForeignKeys[3].RefTable = ServicesTable
+	OrderStatusHistoriesTable.ForeignKeys[0].RefTable = OrdersTable
+	PatientsTable.ForeignKeys[0].RefTable = ClinicsTable
+	ProductsTable.ForeignKeys[0].RefTable = ClinicsTable
+	ProductsTable.ForeignKeys[1].RefTable = ProductCategoriesTable
+	ProductCategoriesTable.ForeignKeys[0].RefTable = ClinicsTable
+	ServicesTable.ForeignKeys[0].RefTable = ClinicsTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
+	UsersTable.ForeignKeys[0].RefTable = ClinicsTable
 }

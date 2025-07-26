@@ -3,14 +3,16 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/product"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/productcategory"
 	"github.com/google/uuid"
 )
 
@@ -19,44 +21,119 @@ type Product struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// Stock Keeping Unit
+	Sku string `json:"sku,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// ShortDescription holds the value of the "short_description" field.
+	ShortDescription string `json:"short_description,omitempty"`
 	// Brand holds the value of the "brand" field.
 	Brand string `json:"brand,omitempty"`
-	// Category holds the value of the "category" field.
-	Category string `json:"category,omitempty"`
-	// Price holds the value of the "price" field.
-	Price float64 `json:"price,omitempty"`
-	// CreatorID holds the value of the "creator_id" field.
-	CreatorID uuid.UUID `json:"creator_id,omitempty"`
+	// array of image URLs
+	Images []string `json:"images,omitempty"`
+	// cost price from supplier
+	PurchasePrice float64 `json:"purchase_price,omitempty"`
+	// price to sell to customer
+	SellingPrice float64 `json:"selling_price,omitempty"`
+	// discounted price if any
+	DiscountPrice float64 `json:"discount_price,omitempty"`
+	// unit of measurement: pcs, ml, gram, etc
+	Unit string `json:"unit,omitempty"`
+	// minimum stock before alert
+	MinStockLevel int `json:"min_stock_level,omitempty"`
+	// CurrentStock holds the value of the "current_stock" field.
+	CurrentStock int `json:"current_stock,omitempty"`
+	// TrackInventory holds the value of the "track_inventory" field.
+	TrackInventory bool `json:"track_inventory,omitempty"`
+	// PrescriptionRequired holds the value of the "prescription_required" field.
+	PrescriptionRequired bool `json:"prescription_required,omitempty"`
+	// product specs like ingredients, size, etc
+	Specifications map[string]interface{} `json:"specifications,omitempty"`
+	// UsageInstructions holds the value of the "usage_instructions" field.
+	UsageInstructions []string `json:"usage_instructions,omitempty"`
+	// Warnings holds the value of the "warnings" field.
+	Warnings []string `json:"warnings,omitempty"`
+	// ExpiryDate holds the value of the "expiry_date" field.
+	ExpiryDate time.Time `json:"expiry_date,omitempty"`
+	// BatchNumber holds the value of the "batch_number" field.
+	BatchNumber string `json:"batch_number,omitempty"`
+	// Status holds the value of the "status" field.
+	Status product.Status `json:"status,omitempty"`
+	// for search and filtering
+	Tags []string `json:"tags,omitempty"`
+	// for shipping calculation
+	Weight float64 `json:"weight,omitempty"`
+	// length, width, height
+	Dimensions map[string]float64 `json:"dimensions,omitempty"`
+	// featured product
+	Featured bool `json:"featured,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProductQuery when eager-loading is set.
-	Edges        ProductEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges                     ProductEdges `json:"edges"`
+	clinic_products           *uuid.UUID
+	product_category_products *uuid.UUID
+	selectValues              sql.SelectValues
 }
 
 // ProductEdges holds the relations/edges for other nodes in the graph.
 type ProductEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
+	// Clinic holds the value of the clinic edge.
+	Clinic *Clinic `json:"clinic,omitempty"`
+	// Category holds the value of the category edge.
+	Category *ProductCategory `json:"category,omitempty"`
+	// InventoryMovements holds the value of the inventory_movements edge.
+	InventoryMovements []*InventoryMovement `json:"inventory_movements,omitempty"`
+	// OrderItems holds the value of the order_items edge.
+	OrderItems []*OrderItem `json:"order_items,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [4]bool
 }
 
-// UserOrErr returns the User value or an error if the edge
+// ClinicOrErr returns the Clinic value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ProductEdges) UserOrErr() (*User, error) {
-	if e.User != nil {
-		return e.User, nil
+func (e ProductEdges) ClinicOrErr() (*Clinic, error) {
+	if e.Clinic != nil {
+		return e.Clinic, nil
 	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: user.Label}
+		return nil, &NotFoundError{label: clinic.Label}
 	}
-	return nil, &NotLoadedError{edge: "user"}
+	return nil, &NotLoadedError{edge: "clinic"}
+}
+
+// CategoryOrErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProductEdges) CategoryOrErr() (*ProductCategory, error) {
+	if e.Category != nil {
+		return e.Category, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: productcategory.Label}
+	}
+	return nil, &NotLoadedError{edge: "category"}
+}
+
+// InventoryMovementsOrErr returns the InventoryMovements value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) InventoryMovementsOrErr() ([]*InventoryMovement, error) {
+	if e.loadedTypes[2] {
+		return e.InventoryMovements, nil
+	}
+	return nil, &NotLoadedError{edge: "inventory_movements"}
+}
+
+// OrderItemsOrErr returns the OrderItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) OrderItemsOrErr() ([]*OrderItem, error) {
+	if e.loadedTypes[3] {
+		return e.OrderItems, nil
+	}
+	return nil, &NotLoadedError{edge: "order_items"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -64,14 +141,24 @@ func (*Product) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case product.FieldPrice:
+		case product.FieldImages, product.FieldSpecifications, product.FieldUsageInstructions, product.FieldWarnings, product.FieldTags, product.FieldDimensions:
+			values[i] = new([]byte)
+		case product.FieldTrackInventory, product.FieldPrescriptionRequired, product.FieldFeatured:
+			values[i] = new(sql.NullBool)
+		case product.FieldPurchasePrice, product.FieldSellingPrice, product.FieldDiscountPrice, product.FieldWeight:
 			values[i] = new(sql.NullFloat64)
-		case product.FieldName, product.FieldBrand, product.FieldCategory:
+		case product.FieldMinStockLevel, product.FieldCurrentStock:
+			values[i] = new(sql.NullInt64)
+		case product.FieldSku, product.FieldName, product.FieldDescription, product.FieldShortDescription, product.FieldBrand, product.FieldUnit, product.FieldBatchNumber, product.FieldStatus:
 			values[i] = new(sql.NullString)
-		case product.FieldCreatedAt, product.FieldUpdatedAt:
+		case product.FieldExpiryDate, product.FieldCreatedAt, product.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case product.FieldID, product.FieldCreatorID:
+		case product.FieldID:
 			values[i] = new(uuid.UUID)
+		case product.ForeignKeys[0]: // clinic_products
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case product.ForeignKeys[1]: // product_category_products
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -93,11 +180,29 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				pr.ID = *value
 			}
+		case product.FieldSku:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field sku", values[i])
+			} else if value.Valid {
+				pr.Sku = value.String
+			}
 		case product.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				pr.Name = value.String
+			}
+		case product.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				pr.Description = value.String
+			}
+		case product.FieldShortDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field short_description", values[i])
+			} else if value.Valid {
+				pr.ShortDescription = value.String
 			}
 		case product.FieldBrand:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -105,23 +210,131 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.Brand = value.String
 			}
-		case product.FieldCategory:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field category", values[i])
-			} else if value.Valid {
-				pr.Category = value.String
+		case product.FieldImages:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field images", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Images); err != nil {
+					return fmt.Errorf("unmarshal field images: %w", err)
+				}
 			}
-		case product.FieldPrice:
+		case product.FieldPurchasePrice:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field price", values[i])
+				return fmt.Errorf("unexpected type %T for field purchase_price", values[i])
 			} else if value.Valid {
-				pr.Price = value.Float64
+				pr.PurchasePrice = value.Float64
 			}
-		case product.FieldCreatorID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field creator_id", values[i])
-			} else if value != nil {
-				pr.CreatorID = *value
+		case product.FieldSellingPrice:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field selling_price", values[i])
+			} else if value.Valid {
+				pr.SellingPrice = value.Float64
+			}
+		case product.FieldDiscountPrice:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field discount_price", values[i])
+			} else if value.Valid {
+				pr.DiscountPrice = value.Float64
+			}
+		case product.FieldUnit:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field unit", values[i])
+			} else if value.Valid {
+				pr.Unit = value.String
+			}
+		case product.FieldMinStockLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field min_stock_level", values[i])
+			} else if value.Valid {
+				pr.MinStockLevel = int(value.Int64)
+			}
+		case product.FieldCurrentStock:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field current_stock", values[i])
+			} else if value.Valid {
+				pr.CurrentStock = int(value.Int64)
+			}
+		case product.FieldTrackInventory:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field track_inventory", values[i])
+			} else if value.Valid {
+				pr.TrackInventory = value.Bool
+			}
+		case product.FieldPrescriptionRequired:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field prescription_required", values[i])
+			} else if value.Valid {
+				pr.PrescriptionRequired = value.Bool
+			}
+		case product.FieldSpecifications:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field specifications", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Specifications); err != nil {
+					return fmt.Errorf("unmarshal field specifications: %w", err)
+				}
+			}
+		case product.FieldUsageInstructions:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field usage_instructions", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.UsageInstructions); err != nil {
+					return fmt.Errorf("unmarshal field usage_instructions: %w", err)
+				}
+			}
+		case product.FieldWarnings:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field warnings", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Warnings); err != nil {
+					return fmt.Errorf("unmarshal field warnings: %w", err)
+				}
+			}
+		case product.FieldExpiryDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field expiry_date", values[i])
+			} else if value.Valid {
+				pr.ExpiryDate = value.Time
+			}
+		case product.FieldBatchNumber:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field batch_number", values[i])
+			} else if value.Valid {
+				pr.BatchNumber = value.String
+			}
+		case product.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				pr.Status = product.Status(value.String)
+			}
+		case product.FieldTags:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field tags", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Tags); err != nil {
+					return fmt.Errorf("unmarshal field tags: %w", err)
+				}
+			}
+		case product.FieldWeight:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field weight", values[i])
+			} else if value.Valid {
+				pr.Weight = value.Float64
+			}
+		case product.FieldDimensions:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field dimensions", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Dimensions); err != nil {
+					return fmt.Errorf("unmarshal field dimensions: %w", err)
+				}
+			}
+		case product.FieldFeatured:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field featured", values[i])
+			} else if value.Valid {
+				pr.Featured = value.Bool
 			}
 		case product.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -134,6 +347,20 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				pr.UpdatedAt = value.Time
+			}
+		case product.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field clinic_products", values[i])
+			} else if value.Valid {
+				pr.clinic_products = new(uuid.UUID)
+				*pr.clinic_products = *value.S.(*uuid.UUID)
+			}
+		case product.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field product_category_products", values[i])
+			} else if value.Valid {
+				pr.product_category_products = new(uuid.UUID)
+				*pr.product_category_products = *value.S.(*uuid.UUID)
 			}
 		default:
 			pr.selectValues.Set(columns[i], values[i])
@@ -148,9 +375,24 @@ func (pr *Product) Value(name string) (ent.Value, error) {
 	return pr.selectValues.Get(name)
 }
 
-// QueryUser queries the "user" edge of the Product entity.
-func (pr *Product) QueryUser() *UserQuery {
-	return NewProductClient(pr.config).QueryUser(pr)
+// QueryClinic queries the "clinic" edge of the Product entity.
+func (pr *Product) QueryClinic() *ClinicQuery {
+	return NewProductClient(pr.config).QueryClinic(pr)
+}
+
+// QueryCategory queries the "category" edge of the Product entity.
+func (pr *Product) QueryCategory() *ProductCategoryQuery {
+	return NewProductClient(pr.config).QueryCategory(pr)
+}
+
+// QueryInventoryMovements queries the "inventory_movements" edge of the Product entity.
+func (pr *Product) QueryInventoryMovements() *InventoryMovementQuery {
+	return NewProductClient(pr.config).QueryInventoryMovements(pr)
+}
+
+// QueryOrderItems queries the "order_items" edge of the Product entity.
+func (pr *Product) QueryOrderItems() *OrderItemQuery {
+	return NewProductClient(pr.config).QueryOrderItems(pr)
 }
 
 // Update returns a builder for updating this Product.
@@ -176,20 +418,77 @@ func (pr *Product) String() string {
 	var builder strings.Builder
 	builder.WriteString("Product(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
+	builder.WriteString("sku=")
+	builder.WriteString(pr.Sku)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(pr.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(pr.Description)
+	builder.WriteString(", ")
+	builder.WriteString("short_description=")
+	builder.WriteString(pr.ShortDescription)
 	builder.WriteString(", ")
 	builder.WriteString("brand=")
 	builder.WriteString(pr.Brand)
 	builder.WriteString(", ")
-	builder.WriteString("category=")
-	builder.WriteString(pr.Category)
+	builder.WriteString("images=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Images))
 	builder.WriteString(", ")
-	builder.WriteString("price=")
-	builder.WriteString(fmt.Sprintf("%v", pr.Price))
+	builder.WriteString("purchase_price=")
+	builder.WriteString(fmt.Sprintf("%v", pr.PurchasePrice))
 	builder.WriteString(", ")
-	builder.WriteString("creator_id=")
-	builder.WriteString(fmt.Sprintf("%v", pr.CreatorID))
+	builder.WriteString("selling_price=")
+	builder.WriteString(fmt.Sprintf("%v", pr.SellingPrice))
+	builder.WriteString(", ")
+	builder.WriteString("discount_price=")
+	builder.WriteString(fmt.Sprintf("%v", pr.DiscountPrice))
+	builder.WriteString(", ")
+	builder.WriteString("unit=")
+	builder.WriteString(pr.Unit)
+	builder.WriteString(", ")
+	builder.WriteString("min_stock_level=")
+	builder.WriteString(fmt.Sprintf("%v", pr.MinStockLevel))
+	builder.WriteString(", ")
+	builder.WriteString("current_stock=")
+	builder.WriteString(fmt.Sprintf("%v", pr.CurrentStock))
+	builder.WriteString(", ")
+	builder.WriteString("track_inventory=")
+	builder.WriteString(fmt.Sprintf("%v", pr.TrackInventory))
+	builder.WriteString(", ")
+	builder.WriteString("prescription_required=")
+	builder.WriteString(fmt.Sprintf("%v", pr.PrescriptionRequired))
+	builder.WriteString(", ")
+	builder.WriteString("specifications=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Specifications))
+	builder.WriteString(", ")
+	builder.WriteString("usage_instructions=")
+	builder.WriteString(fmt.Sprintf("%v", pr.UsageInstructions))
+	builder.WriteString(", ")
+	builder.WriteString("warnings=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Warnings))
+	builder.WriteString(", ")
+	builder.WriteString("expiry_date=")
+	builder.WriteString(pr.ExpiryDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("batch_number=")
+	builder.WriteString(pr.BatchNumber)
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Status))
+	builder.WriteString(", ")
+	builder.WriteString("tags=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Tags))
+	builder.WriteString(", ")
+	builder.WriteString("weight=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Weight))
+	builder.WriteString(", ")
+	builder.WriteString("dimensions=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Dimensions))
+	builder.WriteString(", ")
+	builder.WriteString("featured=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Featured))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(pr.CreatedAt.Format(time.ANSIC))

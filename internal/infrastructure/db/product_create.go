@@ -10,8 +10,11 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/inventorymovement"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/orderitem"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/product"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/productcategory"
 	"github.com/google/uuid"
 )
 
@@ -22,9 +25,43 @@ type ProductCreate struct {
 	hooks    []Hook
 }
 
+// SetSku sets the "sku" field.
+func (pc *ProductCreate) SetSku(s string) *ProductCreate {
+	pc.mutation.SetSku(s)
+	return pc
+}
+
 // SetName sets the "name" field.
 func (pc *ProductCreate) SetName(s string) *ProductCreate {
 	pc.mutation.SetName(s)
+	return pc
+}
+
+// SetDescription sets the "description" field.
+func (pc *ProductCreate) SetDescription(s string) *ProductCreate {
+	pc.mutation.SetDescription(s)
+	return pc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableDescription(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetDescription(*s)
+	}
+	return pc
+}
+
+// SetShortDescription sets the "short_description" field.
+func (pc *ProductCreate) SetShortDescription(s string) *ProductCreate {
+	pc.mutation.SetShortDescription(s)
+	return pc
+}
+
+// SetNillableShortDescription sets the "short_description" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableShortDescription(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetShortDescription(*s)
+	}
 	return pc
 }
 
@@ -34,21 +71,229 @@ func (pc *ProductCreate) SetBrand(s string) *ProductCreate {
 	return pc
 }
 
-// SetCategory sets the "category" field.
-func (pc *ProductCreate) SetCategory(s string) *ProductCreate {
-	pc.mutation.SetCategory(s)
+// SetNillableBrand sets the "brand" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableBrand(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetBrand(*s)
+	}
 	return pc
 }
 
-// SetPrice sets the "price" field.
-func (pc *ProductCreate) SetPrice(f float64) *ProductCreate {
-	pc.mutation.SetPrice(f)
+// SetImages sets the "images" field.
+func (pc *ProductCreate) SetImages(s []string) *ProductCreate {
+	pc.mutation.SetImages(s)
 	return pc
 }
 
-// SetCreatorID sets the "creator_id" field.
-func (pc *ProductCreate) SetCreatorID(u uuid.UUID) *ProductCreate {
-	pc.mutation.SetCreatorID(u)
+// SetPurchasePrice sets the "purchase_price" field.
+func (pc *ProductCreate) SetPurchasePrice(f float64) *ProductCreate {
+	pc.mutation.SetPurchasePrice(f)
+	return pc
+}
+
+// SetNillablePurchasePrice sets the "purchase_price" field if the given value is not nil.
+func (pc *ProductCreate) SetNillablePurchasePrice(f *float64) *ProductCreate {
+	if f != nil {
+		pc.SetPurchasePrice(*f)
+	}
+	return pc
+}
+
+// SetSellingPrice sets the "selling_price" field.
+func (pc *ProductCreate) SetSellingPrice(f float64) *ProductCreate {
+	pc.mutation.SetSellingPrice(f)
+	return pc
+}
+
+// SetNillableSellingPrice sets the "selling_price" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableSellingPrice(f *float64) *ProductCreate {
+	if f != nil {
+		pc.SetSellingPrice(*f)
+	}
+	return pc
+}
+
+// SetDiscountPrice sets the "discount_price" field.
+func (pc *ProductCreate) SetDiscountPrice(f float64) *ProductCreate {
+	pc.mutation.SetDiscountPrice(f)
+	return pc
+}
+
+// SetNillableDiscountPrice sets the "discount_price" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableDiscountPrice(f *float64) *ProductCreate {
+	if f != nil {
+		pc.SetDiscountPrice(*f)
+	}
+	return pc
+}
+
+// SetUnit sets the "unit" field.
+func (pc *ProductCreate) SetUnit(s string) *ProductCreate {
+	pc.mutation.SetUnit(s)
+	return pc
+}
+
+// SetNillableUnit sets the "unit" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableUnit(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetUnit(*s)
+	}
+	return pc
+}
+
+// SetMinStockLevel sets the "min_stock_level" field.
+func (pc *ProductCreate) SetMinStockLevel(i int) *ProductCreate {
+	pc.mutation.SetMinStockLevel(i)
+	return pc
+}
+
+// SetNillableMinStockLevel sets the "min_stock_level" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableMinStockLevel(i *int) *ProductCreate {
+	if i != nil {
+		pc.SetMinStockLevel(*i)
+	}
+	return pc
+}
+
+// SetCurrentStock sets the "current_stock" field.
+func (pc *ProductCreate) SetCurrentStock(i int) *ProductCreate {
+	pc.mutation.SetCurrentStock(i)
+	return pc
+}
+
+// SetNillableCurrentStock sets the "current_stock" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableCurrentStock(i *int) *ProductCreate {
+	if i != nil {
+		pc.SetCurrentStock(*i)
+	}
+	return pc
+}
+
+// SetTrackInventory sets the "track_inventory" field.
+func (pc *ProductCreate) SetTrackInventory(b bool) *ProductCreate {
+	pc.mutation.SetTrackInventory(b)
+	return pc
+}
+
+// SetNillableTrackInventory sets the "track_inventory" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableTrackInventory(b *bool) *ProductCreate {
+	if b != nil {
+		pc.SetTrackInventory(*b)
+	}
+	return pc
+}
+
+// SetPrescriptionRequired sets the "prescription_required" field.
+func (pc *ProductCreate) SetPrescriptionRequired(b bool) *ProductCreate {
+	pc.mutation.SetPrescriptionRequired(b)
+	return pc
+}
+
+// SetNillablePrescriptionRequired sets the "prescription_required" field if the given value is not nil.
+func (pc *ProductCreate) SetNillablePrescriptionRequired(b *bool) *ProductCreate {
+	if b != nil {
+		pc.SetPrescriptionRequired(*b)
+	}
+	return pc
+}
+
+// SetSpecifications sets the "specifications" field.
+func (pc *ProductCreate) SetSpecifications(m map[string]interface{}) *ProductCreate {
+	pc.mutation.SetSpecifications(m)
+	return pc
+}
+
+// SetUsageInstructions sets the "usage_instructions" field.
+func (pc *ProductCreate) SetUsageInstructions(s []string) *ProductCreate {
+	pc.mutation.SetUsageInstructions(s)
+	return pc
+}
+
+// SetWarnings sets the "warnings" field.
+func (pc *ProductCreate) SetWarnings(s []string) *ProductCreate {
+	pc.mutation.SetWarnings(s)
+	return pc
+}
+
+// SetExpiryDate sets the "expiry_date" field.
+func (pc *ProductCreate) SetExpiryDate(t time.Time) *ProductCreate {
+	pc.mutation.SetExpiryDate(t)
+	return pc
+}
+
+// SetNillableExpiryDate sets the "expiry_date" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableExpiryDate(t *time.Time) *ProductCreate {
+	if t != nil {
+		pc.SetExpiryDate(*t)
+	}
+	return pc
+}
+
+// SetBatchNumber sets the "batch_number" field.
+func (pc *ProductCreate) SetBatchNumber(s string) *ProductCreate {
+	pc.mutation.SetBatchNumber(s)
+	return pc
+}
+
+// SetNillableBatchNumber sets the "batch_number" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableBatchNumber(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetBatchNumber(*s)
+	}
+	return pc
+}
+
+// SetStatus sets the "status" field.
+func (pc *ProductCreate) SetStatus(pr product.Status) *ProductCreate {
+	pc.mutation.SetStatus(pr)
+	return pc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableStatus(pr *product.Status) *ProductCreate {
+	if pr != nil {
+		pc.SetStatus(*pr)
+	}
+	return pc
+}
+
+// SetTags sets the "tags" field.
+func (pc *ProductCreate) SetTags(s []string) *ProductCreate {
+	pc.mutation.SetTags(s)
+	return pc
+}
+
+// SetWeight sets the "weight" field.
+func (pc *ProductCreate) SetWeight(f float64) *ProductCreate {
+	pc.mutation.SetWeight(f)
+	return pc
+}
+
+// SetNillableWeight sets the "weight" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableWeight(f *float64) *ProductCreate {
+	if f != nil {
+		pc.SetWeight(*f)
+	}
+	return pc
+}
+
+// SetDimensions sets the "dimensions" field.
+func (pc *ProductCreate) SetDimensions(m map[string]float64) *ProductCreate {
+	pc.mutation.SetDimensions(m)
+	return pc
+}
+
+// SetFeatured sets the "featured" field.
+func (pc *ProductCreate) SetFeatured(b bool) *ProductCreate {
+	pc.mutation.SetFeatured(b)
+	return pc
+}
+
+// SetNillableFeatured sets the "featured" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableFeatured(b *bool) *ProductCreate {
+	if b != nil {
+		pc.SetFeatured(*b)
+	}
 	return pc
 }
 
@@ -72,6 +317,14 @@ func (pc *ProductCreate) SetUpdatedAt(t time.Time) *ProductCreate {
 	return pc
 }
 
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableUpdatedAt(t *time.Time) *ProductCreate {
+	if t != nil {
+		pc.SetUpdatedAt(*t)
+	}
+	return pc
+}
+
 // SetID sets the "id" field.
 func (pc *ProductCreate) SetID(u uuid.UUID) *ProductCreate {
 	pc.mutation.SetID(u)
@@ -86,15 +339,64 @@ func (pc *ProductCreate) SetNillableID(u *uuid.UUID) *ProductCreate {
 	return pc
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (pc *ProductCreate) SetUserID(id uuid.UUID) *ProductCreate {
-	pc.mutation.SetUserID(id)
+// SetClinicID sets the "clinic" edge to the Clinic entity by ID.
+func (pc *ProductCreate) SetClinicID(id uuid.UUID) *ProductCreate {
+	pc.mutation.SetClinicID(id)
 	return pc
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (pc *ProductCreate) SetUser(u *User) *ProductCreate {
-	return pc.SetUserID(u.ID)
+// SetNillableClinicID sets the "clinic" edge to the Clinic entity by ID if the given value is not nil.
+func (pc *ProductCreate) SetNillableClinicID(id *uuid.UUID) *ProductCreate {
+	if id != nil {
+		pc = pc.SetClinicID(*id)
+	}
+	return pc
+}
+
+// SetClinic sets the "clinic" edge to the Clinic entity.
+func (pc *ProductCreate) SetClinic(c *Clinic) *ProductCreate {
+	return pc.SetClinicID(c.ID)
+}
+
+// SetCategoryID sets the "category" edge to the ProductCategory entity by ID.
+func (pc *ProductCreate) SetCategoryID(id uuid.UUID) *ProductCreate {
+	pc.mutation.SetCategoryID(id)
+	return pc
+}
+
+// SetCategory sets the "category" edge to the ProductCategory entity.
+func (pc *ProductCreate) SetCategory(p *ProductCategory) *ProductCreate {
+	return pc.SetCategoryID(p.ID)
+}
+
+// AddInventoryMovementIDs adds the "inventory_movements" edge to the InventoryMovement entity by IDs.
+func (pc *ProductCreate) AddInventoryMovementIDs(ids ...uuid.UUID) *ProductCreate {
+	pc.mutation.AddInventoryMovementIDs(ids...)
+	return pc
+}
+
+// AddInventoryMovements adds the "inventory_movements" edges to the InventoryMovement entity.
+func (pc *ProductCreate) AddInventoryMovements(i ...*InventoryMovement) *ProductCreate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return pc.AddInventoryMovementIDs(ids...)
+}
+
+// AddOrderItemIDs adds the "order_items" edge to the OrderItem entity by IDs.
+func (pc *ProductCreate) AddOrderItemIDs(ids ...uuid.UUID) *ProductCreate {
+	pc.mutation.AddOrderItemIDs(ids...)
+	return pc
+}
+
+// AddOrderItems adds the "order_items" edges to the OrderItem entity.
+func (pc *ProductCreate) AddOrderItems(o ...*OrderItem) *ProductCreate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return pc.AddOrderItemIDs(ids...)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -132,9 +434,49 @@ func (pc *ProductCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *ProductCreate) defaults() {
+	if _, ok := pc.mutation.PurchasePrice(); !ok {
+		v := product.DefaultPurchasePrice
+		pc.mutation.SetPurchasePrice(v)
+	}
+	if _, ok := pc.mutation.SellingPrice(); !ok {
+		v := product.DefaultSellingPrice
+		pc.mutation.SetSellingPrice(v)
+	}
+	if _, ok := pc.mutation.Unit(); !ok {
+		v := product.DefaultUnit
+		pc.mutation.SetUnit(v)
+	}
+	if _, ok := pc.mutation.MinStockLevel(); !ok {
+		v := product.DefaultMinStockLevel
+		pc.mutation.SetMinStockLevel(v)
+	}
+	if _, ok := pc.mutation.CurrentStock(); !ok {
+		v := product.DefaultCurrentStock
+		pc.mutation.SetCurrentStock(v)
+	}
+	if _, ok := pc.mutation.TrackInventory(); !ok {
+		v := product.DefaultTrackInventory
+		pc.mutation.SetTrackInventory(v)
+	}
+	if _, ok := pc.mutation.PrescriptionRequired(); !ok {
+		v := product.DefaultPrescriptionRequired
+		pc.mutation.SetPrescriptionRequired(v)
+	}
+	if _, ok := pc.mutation.Status(); !ok {
+		v := product.DefaultStatus
+		pc.mutation.SetStatus(v)
+	}
+	if _, ok := pc.mutation.Featured(); !ok {
+		v := product.DefaultFeatured
+		pc.mutation.SetFeatured(v)
+	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := product.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := pc.mutation.UpdatedAt(); !ok {
+		v := product.DefaultUpdatedAt()
+		pc.mutation.SetUpdatedAt(v)
 	}
 	if _, ok := pc.mutation.ID(); !ok {
 		v := product.DefaultID()
@@ -144,25 +486,43 @@ func (pc *ProductCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProductCreate) check() error {
+	if _, ok := pc.mutation.Sku(); !ok {
+		return &ValidationError{Name: "sku", err: errors.New(`db: missing required field "Product.sku"`)}
+	}
 	if _, ok := pc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "Product.name"`)}
 	}
-	if v, ok := pc.mutation.Name(); ok {
-		if err := product.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`db: validator failed for field "Product.name": %w`, err)}
+	if _, ok := pc.mutation.PurchasePrice(); !ok {
+		return &ValidationError{Name: "purchase_price", err: errors.New(`db: missing required field "Product.purchase_price"`)}
+	}
+	if _, ok := pc.mutation.SellingPrice(); !ok {
+		return &ValidationError{Name: "selling_price", err: errors.New(`db: missing required field "Product.selling_price"`)}
+	}
+	if _, ok := pc.mutation.Unit(); !ok {
+		return &ValidationError{Name: "unit", err: errors.New(`db: missing required field "Product.unit"`)}
+	}
+	if _, ok := pc.mutation.MinStockLevel(); !ok {
+		return &ValidationError{Name: "min_stock_level", err: errors.New(`db: missing required field "Product.min_stock_level"`)}
+	}
+	if _, ok := pc.mutation.CurrentStock(); !ok {
+		return &ValidationError{Name: "current_stock", err: errors.New(`db: missing required field "Product.current_stock"`)}
+	}
+	if _, ok := pc.mutation.TrackInventory(); !ok {
+		return &ValidationError{Name: "track_inventory", err: errors.New(`db: missing required field "Product.track_inventory"`)}
+	}
+	if _, ok := pc.mutation.PrescriptionRequired(); !ok {
+		return &ValidationError{Name: "prescription_required", err: errors.New(`db: missing required field "Product.prescription_required"`)}
+	}
+	if _, ok := pc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`db: missing required field "Product.status"`)}
+	}
+	if v, ok := pc.mutation.Status(); ok {
+		if err := product.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`db: validator failed for field "Product.status": %w`, err)}
 		}
 	}
-	if _, ok := pc.mutation.Brand(); !ok {
-		return &ValidationError{Name: "brand", err: errors.New(`db: missing required field "Product.brand"`)}
-	}
-	if _, ok := pc.mutation.Category(); !ok {
-		return &ValidationError{Name: "category", err: errors.New(`db: missing required field "Product.category"`)}
-	}
-	if _, ok := pc.mutation.Price(); !ok {
-		return &ValidationError{Name: "price", err: errors.New(`db: missing required field "Product.price"`)}
-	}
-	if _, ok := pc.mutation.CreatorID(); !ok {
-		return &ValidationError{Name: "creator_id", err: errors.New(`db: missing required field "Product.creator_id"`)}
+	if _, ok := pc.mutation.Featured(); !ok {
+		return &ValidationError{Name: "featured", err: errors.New(`db: missing required field "Product.featured"`)}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`db: missing required field "Product.created_at"`)}
@@ -170,8 +530,8 @@ func (pc *ProductCreate) check() error {
 	if _, ok := pc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`db: missing required field "Product.updated_at"`)}
 	}
-	if len(pc.mutation.UserIDs()) == 0 {
-		return &ValidationError{Name: "user", err: errors.New(`db: missing required edge "Product.user"`)}
+	if len(pc.mutation.CategoryIDs()) == 0 {
+		return &ValidationError{Name: "category", err: errors.New(`db: missing required edge "Product.category"`)}
 	}
 	return nil
 }
@@ -208,21 +568,101 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := pc.mutation.Sku(); ok {
+		_spec.SetField(product.FieldSku, field.TypeString, value)
+		_node.Sku = value
+	}
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := pc.mutation.Description(); ok {
+		_spec.SetField(product.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := pc.mutation.ShortDescription(); ok {
+		_spec.SetField(product.FieldShortDescription, field.TypeString, value)
+		_node.ShortDescription = value
 	}
 	if value, ok := pc.mutation.Brand(); ok {
 		_spec.SetField(product.FieldBrand, field.TypeString, value)
 		_node.Brand = value
 	}
-	if value, ok := pc.mutation.Category(); ok {
-		_spec.SetField(product.FieldCategory, field.TypeString, value)
-		_node.Category = value
+	if value, ok := pc.mutation.Images(); ok {
+		_spec.SetField(product.FieldImages, field.TypeJSON, value)
+		_node.Images = value
 	}
-	if value, ok := pc.mutation.Price(); ok {
-		_spec.SetField(product.FieldPrice, field.TypeFloat64, value)
-		_node.Price = value
+	if value, ok := pc.mutation.PurchasePrice(); ok {
+		_spec.SetField(product.FieldPurchasePrice, field.TypeFloat64, value)
+		_node.PurchasePrice = value
+	}
+	if value, ok := pc.mutation.SellingPrice(); ok {
+		_spec.SetField(product.FieldSellingPrice, field.TypeFloat64, value)
+		_node.SellingPrice = value
+	}
+	if value, ok := pc.mutation.DiscountPrice(); ok {
+		_spec.SetField(product.FieldDiscountPrice, field.TypeFloat64, value)
+		_node.DiscountPrice = value
+	}
+	if value, ok := pc.mutation.Unit(); ok {
+		_spec.SetField(product.FieldUnit, field.TypeString, value)
+		_node.Unit = value
+	}
+	if value, ok := pc.mutation.MinStockLevel(); ok {
+		_spec.SetField(product.FieldMinStockLevel, field.TypeInt, value)
+		_node.MinStockLevel = value
+	}
+	if value, ok := pc.mutation.CurrentStock(); ok {
+		_spec.SetField(product.FieldCurrentStock, field.TypeInt, value)
+		_node.CurrentStock = value
+	}
+	if value, ok := pc.mutation.TrackInventory(); ok {
+		_spec.SetField(product.FieldTrackInventory, field.TypeBool, value)
+		_node.TrackInventory = value
+	}
+	if value, ok := pc.mutation.PrescriptionRequired(); ok {
+		_spec.SetField(product.FieldPrescriptionRequired, field.TypeBool, value)
+		_node.PrescriptionRequired = value
+	}
+	if value, ok := pc.mutation.Specifications(); ok {
+		_spec.SetField(product.FieldSpecifications, field.TypeJSON, value)
+		_node.Specifications = value
+	}
+	if value, ok := pc.mutation.UsageInstructions(); ok {
+		_spec.SetField(product.FieldUsageInstructions, field.TypeJSON, value)
+		_node.UsageInstructions = value
+	}
+	if value, ok := pc.mutation.Warnings(); ok {
+		_spec.SetField(product.FieldWarnings, field.TypeJSON, value)
+		_node.Warnings = value
+	}
+	if value, ok := pc.mutation.ExpiryDate(); ok {
+		_spec.SetField(product.FieldExpiryDate, field.TypeTime, value)
+		_node.ExpiryDate = value
+	}
+	if value, ok := pc.mutation.BatchNumber(); ok {
+		_spec.SetField(product.FieldBatchNumber, field.TypeString, value)
+		_node.BatchNumber = value
+	}
+	if value, ok := pc.mutation.Status(); ok {
+		_spec.SetField(product.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
+	}
+	if value, ok := pc.mutation.Tags(); ok {
+		_spec.SetField(product.FieldTags, field.TypeJSON, value)
+		_node.Tags = value
+	}
+	if value, ok := pc.mutation.Weight(); ok {
+		_spec.SetField(product.FieldWeight, field.TypeFloat64, value)
+		_node.Weight = value
+	}
+	if value, ok := pc.mutation.Dimensions(); ok {
+		_spec.SetField(product.FieldDimensions, field.TypeJSON, value)
+		_node.Dimensions = value
+	}
+	if value, ok := pc.mutation.Featured(); ok {
+		_spec.SetField(product.FieldFeatured, field.TypeBool, value)
+		_node.Featured = value
 	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
@@ -232,21 +672,70 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := pc.mutation.UserIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.ClinicIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   product.UserTable,
-			Columns: []string{product.UserColumn},
+			Table:   product.ClinicTable,
+			Columns: []string{product.ClinicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(clinic.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.CreatorID = nodes[0]
+		_node.clinic_products = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.product_category_products = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.InventoryMovementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.InventoryMovementsTable,
+			Columns: []string{product.InventoryMovementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(inventorymovement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.OrderItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.OrderItemsTable,
+			Columns: []string{product.OrderItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
