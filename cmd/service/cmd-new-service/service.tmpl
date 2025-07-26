@@ -1,0 +1,68 @@
+package {{.ServiceName}}_service
+
+import (
+	"context"
+	"log"
+
+	domain_entries "{{.ModuleName}}/internal/core/domain"
+	"{{.ModuleName}}/internal/core/model"
+	"{{.ModuleName}}/internal/core/usecase"
+	"{{.ModuleName}}/internal/infrastructure/db"
+	"{{.ModuleName}}/pkg/validator"
+)
+
+type {{.Name}}Input struct {
+	// TODO: Define fields
+}
+type {{.Name}}Output struct {
+	// TODO: Define fields
+}
+type {{.Name}} model.Service[{{.Name}}Input, {{.Name}}Output]
+
+type {{.Receiver}} struct {
+	domain  *domain_entries.Domain
+	client  *db.Client
+	usecase *usecase.Usecases
+	validator validator.Validator
+}
+
+func New{{.Name}}(
+	domain *domain_entries.Domain,
+        client *db.Client,
+	usecase *usecase.Usecases,
+	validator validator.Validator,
+) {{.Name}} {
+	return &{{.Receiver}}{
+		domain:  domain,
+		client: client,
+		usecase: usecase,
+		validator: validator,
+	}
+}
+
+func (s *{{.Receiver}}) Validate(input {{.Name}}Input) error {
+	return s.validator.Validate(input)
+}
+
+func (s *{{.Receiver}}) Execute(ctx context.Context, input {{.Name}}Input) (*{{.Name}}Output, error) {
+	if err := s.Validate(input); err != nil {
+		return nil, err
+	}
+	if err := s.Observer(ctx, input); err != nil {
+		log.Printf("Observer service '{{.Name}}' error: %s", err.Error())
+	}
+	return s.Process(ctx, input)
+}
+
+func (s *{{.Receiver}}) Observer(ctx context.Context, input {{.Name}}Input) error {
+        // TODO: Implement observer logic
+	// This is optional. You can leave this blank if not needed.
+
+	return nil
+}
+
+func (s *{{.Receiver}}) Process(ctx context.Context, input {{.Name}}Input) (*{{.Name}}Output, error) {
+	// TODO: Implement logic
+
+	return nil, nil
+}

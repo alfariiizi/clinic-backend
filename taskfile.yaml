@@ -1,0 +1,173 @@
+version: "3"
+
+tasks:
+  build:
+    desc: Build the project
+    cmds:
+      - echo "Building..."
+      - go build -o bin/main cmd/app/main.go
+
+  run:dev:
+    desc: Run the application in development mode
+    cmds:
+      - echo "Running in development mode..."
+      - echo "Generating repositories..."
+      - ./scripts/ent-tools.sh generate
+      - echo "Starting the application..."
+      - ./scripts/watch.sh all
+
+  run:seed:
+    desc: Generate seed data
+    cmds:
+      - echo "Running seeder..."
+      - go run ./cmd/app/main.go seed
+
+  migrate:status:
+    desc: Check the status of database migrations
+    cmds:
+      - echo "Checking migration status..."
+      - ./scripts/atlas-tool.sh status
+
+  migrate:diff:
+    desc: Generate a migration diff
+    cmds:
+      - echo "Generating migration diff for {{.name}}..."
+      - ./scripts/atlas-tool.sh diff {{.name}}
+    requires:
+      vars: [name]
+
+  migrate:up:
+    desc: Apply database migrations
+    cmds:
+      - echo "Applying migrations..."
+      - ./scripts/atlas-tool.sh apply
+
+  create:schema:
+    desc: Create a new schema
+    cmds:
+      - echo "Creating new schema..."
+      - ./scripts/ent-tools.sh new {{.name}}
+    requires:
+      vars: [name]
+
+  create:domain:
+    desc: Create a new domain
+    cmds:
+      - echo "Creating new domain..."
+      - go run ./cmd/domain/cmd-new-domain/main.go {{.name}}
+      - go run ./cmd/domain/cmd-regenerate-domain/main.go
+    requires:
+      vars: [name]
+
+  create:usecase:
+    desc: Create a new usecase
+    cmds:
+      - echo "Creating new usecase..."
+      - go run ./cmd/usecase/cmd-new-usecase/main.go {{.name}}
+    requires:
+      vars: [name]
+
+  create:service:
+    desc: Create a new service
+    cmds:
+      - echo "Creating new service..."
+      - go run ./cmd/service/cmd-new-service/main.go {{.group}} {{.name}}
+    requires:
+      vars: [group, name]
+
+  create:enum:
+    desc: Create a new enum
+    cmds:
+      - echo "Creating new enum..."
+      - go run ./cmd/enum/cmd/main.go add {{.name | lower}}
+    requires:
+      vars: [name]
+
+  create:http-handler:
+    desc: Create a new HTTP handler
+    cmds:
+      - echo "Creating new HTTP handler..."
+      - go run ./cmd/http/cmd-new-handler/main.go {{.group}} {{.name}}
+        {{.method}}
+    requires:
+      vars: [group, name, method]
+
+  create:service:http-handler:
+    desc: Create a new HTTP handler for a service
+    cmds:
+      - echo "Creating new Service and HTTP handler..."
+      - go run ./cmd/service/cmd-new-service/main.go {{.group}} {{.name}}
+      - go run ./cmd/http/cmd-new-handler/main.go {{.group}} {{.name}}
+        {{.method}}
+    requires:
+      vars: [group, name, method]
+
+  gen:all:
+    desc: Generate all code
+    cmds:
+      - echo "Regenerating all code..."
+      - go run ./cmd/domain/cmd-regenerate-domain/main.go
+      - go run ./cmd/usecase/cmd-regenerate-usecase/main.go
+      - go run ./cmd/service/cmd-regenerate-service/main.go
+      - go run ./cmd/http/cmd-regenerate-handler/main.go
+      - ./scripts/ent-tools.sh generate
+
+  gen:core:
+    desc: Generate core code
+    cmds:
+      - echo "Regenerate core code..."
+      - go run ./cmd/usecase/cmd-regenerate-usecase/main.go
+      - go run ./cmd/service/cmd-regenerate-service/main.go
+      - go run ./cmd/domain/cmd-regenerate-domain/main.go
+
+  gen:domain:
+    desc: Generate domain code
+    cmds:
+      - echo "Regenerate domain code..."
+      - go run ./cmd/domain/cmd-regenerate-domain/main.go
+
+  gen:usecase:
+    desc: Generate usecase code
+    cmds:
+      - echo "Regenerate usecases..."
+      - go run ./cmd/usecase/cmd-regenerate-usecase/main.go
+
+  gen:service:
+    desc: Generate service code
+    cmds:
+      - echo "Regenerate service..."
+      - go run ./cmd/service/cmd-regenerate-service/main.go
+
+  gen:enum:
+    desc: Generate enum code
+    cmds:
+      - echo "Regenerate enums..."
+      - go run ./cmd/enum/cmd/main.go generate
+
+  gen:http-handler:
+    desc: Generate HTTP handler code
+    cmds:
+      - echo "Regenerate HTTP handlers..."
+      - go run ./cmd/http/cmd-regenerate-handler/main.go
+
+  gen:db-model:
+    desc: Generate DB Model code
+    cmds:
+      - echo "Generating DB Model..."
+      - ./scripts/ent-tools.sh generate
+
+  test:
+    desc: Run tests
+    cmds:
+      - echo "Running tests..."
+      - go test ./...
+
+  clean:
+    desc: Clean up build artifacts
+    cmds:
+      - echo "Cleaning up..."
+      - rm -f myapp
+
+  all:
+    desc: Build, test, and clean
+    deps: [build, test, clean]
