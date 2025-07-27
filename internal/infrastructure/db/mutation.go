@@ -19,6 +19,7 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatmessage"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatthread"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctor"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctorschedule"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/document"
@@ -56,6 +57,7 @@ const (
 	TypeChatMessage         = "ChatMessage"
 	TypeChatThread          = "ChatThread"
 	TypeClinic              = "Clinic"
+	TypeClinicUser          = "ClinicUser"
 	TypeDoctor              = "Doctor"
 	TypeDoctorSchedule      = "DoctorSchedule"
 	TypeDocument            = "Document"
@@ -7409,9 +7411,9 @@ type ClinicMutation struct {
 	created_at                 *time.Time
 	updated_at                 *time.Time
 	clearedFields              map[string]struct{}
-	users                      map[uuid.UUID]struct{}
-	removedusers               map[uuid.UUID]struct{}
-	clearedusers               bool
+	clinic_users               map[uuid.UUID]struct{}
+	removedclinic_users        map[uuid.UUID]struct{}
+	clearedclinic_users        bool
 	patients                   map[uuid.UUID]struct{}
 	removedpatients            map[uuid.UUID]struct{}
 	clearedpatients            bool
@@ -8069,58 +8071,58 @@ func (m *ClinicMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddUserIDs adds the "users" edge to the User entity by ids.
-func (m *ClinicMutation) AddUserIDs(ids ...uuid.UUID) {
-	if m.users == nil {
-		m.users = make(map[uuid.UUID]struct{})
+// AddClinicUserIDs adds the "clinic_users" edge to the ClinicUser entity by ids.
+func (m *ClinicMutation) AddClinicUserIDs(ids ...uuid.UUID) {
+	if m.clinic_users == nil {
+		m.clinic_users = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.users[ids[i]] = struct{}{}
+		m.clinic_users[ids[i]] = struct{}{}
 	}
 }
 
-// ClearUsers clears the "users" edge to the User entity.
-func (m *ClinicMutation) ClearUsers() {
-	m.clearedusers = true
+// ClearClinicUsers clears the "clinic_users" edge to the ClinicUser entity.
+func (m *ClinicMutation) ClearClinicUsers() {
+	m.clearedclinic_users = true
 }
 
-// UsersCleared reports if the "users" edge to the User entity was cleared.
-func (m *ClinicMutation) UsersCleared() bool {
-	return m.clearedusers
+// ClinicUsersCleared reports if the "clinic_users" edge to the ClinicUser entity was cleared.
+func (m *ClinicMutation) ClinicUsersCleared() bool {
+	return m.clearedclinic_users
 }
 
-// RemoveUserIDs removes the "users" edge to the User entity by IDs.
-func (m *ClinicMutation) RemoveUserIDs(ids ...uuid.UUID) {
-	if m.removedusers == nil {
-		m.removedusers = make(map[uuid.UUID]struct{})
+// RemoveClinicUserIDs removes the "clinic_users" edge to the ClinicUser entity by IDs.
+func (m *ClinicMutation) RemoveClinicUserIDs(ids ...uuid.UUID) {
+	if m.removedclinic_users == nil {
+		m.removedclinic_users = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.users, ids[i])
-		m.removedusers[ids[i]] = struct{}{}
+		delete(m.clinic_users, ids[i])
+		m.removedclinic_users[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedUsers returns the removed IDs of the "users" edge to the User entity.
-func (m *ClinicMutation) RemovedUsersIDs() (ids []uuid.UUID) {
-	for id := range m.removedusers {
+// RemovedClinicUsers returns the removed IDs of the "clinic_users" edge to the ClinicUser entity.
+func (m *ClinicMutation) RemovedClinicUsersIDs() (ids []uuid.UUID) {
+	for id := range m.removedclinic_users {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// UsersIDs returns the "users" edge IDs in the mutation.
-func (m *ClinicMutation) UsersIDs() (ids []uuid.UUID) {
-	for id := range m.users {
+// ClinicUsersIDs returns the "clinic_users" edge IDs in the mutation.
+func (m *ClinicMutation) ClinicUsersIDs() (ids []uuid.UUID) {
+	for id := range m.clinic_users {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetUsers resets all changes to the "users" edge.
-func (m *ClinicMutation) ResetUsers() {
-	m.users = nil
-	m.clearedusers = false
-	m.removedusers = nil
+// ResetClinicUsers resets all changes to the "clinic_users" edge.
+func (m *ClinicMutation) ResetClinicUsers() {
+	m.clinic_users = nil
+	m.clearedclinic_users = false
+	m.removedclinic_users = nil
 }
 
 // AddPatientIDs adds the "patients" edge to the Patient entity by ids.
@@ -9125,8 +9127,8 @@ func (m *ClinicMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ClinicMutation) AddedEdges() []string {
 	edges := make([]string, 0, 13)
-	if m.users != nil {
-		edges = append(edges, clinic.EdgeUsers)
+	if m.clinic_users != nil {
+		edges = append(edges, clinic.EdgeClinicUsers)
 	}
 	if m.patients != nil {
 		edges = append(edges, clinic.EdgePatients)
@@ -9171,9 +9173,9 @@ func (m *ClinicMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ClinicMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case clinic.EdgeUsers:
-		ids := make([]ent.Value, 0, len(m.users))
-		for id := range m.users {
+	case clinic.EdgeClinicUsers:
+		ids := make([]ent.Value, 0, len(m.clinic_users))
+		for id := range m.clinic_users {
 			ids = append(ids, id)
 		}
 		return ids
@@ -9256,8 +9258,8 @@ func (m *ClinicMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ClinicMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 13)
-	if m.removedusers != nil {
-		edges = append(edges, clinic.EdgeUsers)
+	if m.removedclinic_users != nil {
+		edges = append(edges, clinic.EdgeClinicUsers)
 	}
 	if m.removedpatients != nil {
 		edges = append(edges, clinic.EdgePatients)
@@ -9302,9 +9304,9 @@ func (m *ClinicMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *ClinicMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case clinic.EdgeUsers:
-		ids := make([]ent.Value, 0, len(m.removedusers))
-		for id := range m.removedusers {
+	case clinic.EdgeClinicUsers:
+		ids := make([]ent.Value, 0, len(m.removedclinic_users))
+		for id := range m.removedclinic_users {
 			ids = append(ids, id)
 		}
 		return ids
@@ -9387,8 +9389,8 @@ func (m *ClinicMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ClinicMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 13)
-	if m.clearedusers {
-		edges = append(edges, clinic.EdgeUsers)
+	if m.clearedclinic_users {
+		edges = append(edges, clinic.EdgeClinicUsers)
 	}
 	if m.clearedpatients {
 		edges = append(edges, clinic.EdgePatients)
@@ -9433,8 +9435,8 @@ func (m *ClinicMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ClinicMutation) EdgeCleared(name string) bool {
 	switch name {
-	case clinic.EdgeUsers:
-		return m.clearedusers
+	case clinic.EdgeClinicUsers:
+		return m.clearedclinic_users
 	case clinic.EdgePatients:
 		return m.clearedpatients
 	case clinic.EdgeDoctors:
@@ -9475,8 +9477,8 @@ func (m *ClinicMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ClinicMutation) ResetEdge(name string) error {
 	switch name {
-	case clinic.EdgeUsers:
-		m.ResetUsers()
+	case clinic.EdgeClinicUsers:
+		m.ResetClinicUsers()
 		return nil
 	case clinic.EdgePatients:
 		m.ResetPatients()
@@ -9516,6 +9518,492 @@ func (m *ClinicMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Clinic edge %s", name)
+}
+
+// ClinicUserMutation represents an operation that mutates the ClinicUser nodes in the graph.
+type ClinicUserMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	clearedFields map[string]struct{}
+	clinic        *uuid.UUID
+	clearedclinic bool
+	user          *uuid.UUID
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*ClinicUser, error)
+	predicates    []predicate.ClinicUser
+}
+
+var _ ent.Mutation = (*ClinicUserMutation)(nil)
+
+// clinicuserOption allows management of the mutation configuration using functional options.
+type clinicuserOption func(*ClinicUserMutation)
+
+// newClinicUserMutation creates new mutation for the ClinicUser entity.
+func newClinicUserMutation(c config, op Op, opts ...clinicuserOption) *ClinicUserMutation {
+	m := &ClinicUserMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeClinicUser,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withClinicUserID sets the ID field of the mutation.
+func withClinicUserID(id uuid.UUID) clinicuserOption {
+	return func(m *ClinicUserMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ClinicUser
+		)
+		m.oldValue = func(ctx context.Context) (*ClinicUser, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ClinicUser.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withClinicUser sets the old ClinicUser of the mutation.
+func withClinicUser(node *ClinicUser) clinicuserOption {
+	return func(m *ClinicUserMutation) {
+		m.oldValue = func(context.Context) (*ClinicUser, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ClinicUserMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ClinicUserMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ClinicUser entities.
+func (m *ClinicUserMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ClinicUserMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ClinicUserMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ClinicUser.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetClinicID sets the "clinic_id" field.
+func (m *ClinicUserMutation) SetClinicID(u uuid.UUID) {
+	m.clinic = &u
+}
+
+// ClinicID returns the value of the "clinic_id" field in the mutation.
+func (m *ClinicUserMutation) ClinicID() (r uuid.UUID, exists bool) {
+	v := m.clinic
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClinicID returns the old "clinic_id" field's value of the ClinicUser entity.
+// If the ClinicUser object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClinicUserMutation) OldClinicID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClinicID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClinicID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClinicID: %w", err)
+	}
+	return oldValue.ClinicID, nil
+}
+
+// ResetClinicID resets all changes to the "clinic_id" field.
+func (m *ClinicUserMutation) ResetClinicID() {
+	m.clinic = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ClinicUserMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ClinicUserMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ClinicUser entity.
+// If the ClinicUser object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClinicUserMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ClinicUserMutation) ResetUserID() {
+	m.user = nil
+}
+
+// ClearClinic clears the "clinic" edge to the Clinic entity.
+func (m *ClinicUserMutation) ClearClinic() {
+	m.clearedclinic = true
+	m.clearedFields[clinicuser.FieldClinicID] = struct{}{}
+}
+
+// ClinicCleared reports if the "clinic" edge to the Clinic entity was cleared.
+func (m *ClinicUserMutation) ClinicCleared() bool {
+	return m.clearedclinic
+}
+
+// ClinicIDs returns the "clinic" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ClinicID instead. It exists only for internal usage by the builders.
+func (m *ClinicUserMutation) ClinicIDs() (ids []uuid.UUID) {
+	if id := m.clinic; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetClinic resets all changes to the "clinic" edge.
+func (m *ClinicUserMutation) ResetClinic() {
+	m.clinic = nil
+	m.clearedclinic = false
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *ClinicUserMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[clinicuser.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *ClinicUserMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *ClinicUserMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *ClinicUserMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the ClinicUserMutation builder.
+func (m *ClinicUserMutation) Where(ps ...predicate.ClinicUser) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ClinicUserMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ClinicUserMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ClinicUser, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ClinicUserMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ClinicUserMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ClinicUser).
+func (m *ClinicUserMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ClinicUserMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.clinic != nil {
+		fields = append(fields, clinicuser.FieldClinicID)
+	}
+	if m.user != nil {
+		fields = append(fields, clinicuser.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ClinicUserMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case clinicuser.FieldClinicID:
+		return m.ClinicID()
+	case clinicuser.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ClinicUserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case clinicuser.FieldClinicID:
+		return m.OldClinicID(ctx)
+	case clinicuser.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown ClinicUser field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ClinicUserMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case clinicuser.FieldClinicID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClinicID(v)
+		return nil
+	case clinicuser.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ClinicUser field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ClinicUserMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ClinicUserMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ClinicUserMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ClinicUser numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ClinicUserMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ClinicUserMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ClinicUserMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ClinicUser nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ClinicUserMutation) ResetField(name string) error {
+	switch name {
+	case clinicuser.FieldClinicID:
+		m.ResetClinicID()
+		return nil
+	case clinicuser.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown ClinicUser field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ClinicUserMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clinic != nil {
+		edges = append(edges, clinicuser.EdgeClinic)
+	}
+	if m.user != nil {
+		edges = append(edges, clinicuser.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ClinicUserMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case clinicuser.EdgeClinic:
+		if id := m.clinic; id != nil {
+			return []ent.Value{*id}
+		}
+	case clinicuser.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ClinicUserMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ClinicUserMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ClinicUserMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedclinic {
+		edges = append(edges, clinicuser.EdgeClinic)
+	}
+	if m.cleareduser {
+		edges = append(edges, clinicuser.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ClinicUserMutation) EdgeCleared(name string) bool {
+	switch name {
+	case clinicuser.EdgeClinic:
+		return m.clearedclinic
+	case clinicuser.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ClinicUserMutation) ClearEdge(name string) error {
+	switch name {
+	case clinicuser.EdgeClinic:
+		m.ClearClinic()
+		return nil
+	case clinicuser.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ClinicUser unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ClinicUserMutation) ResetEdge(name string) error {
+	switch name {
+	case clinicuser.EdgeClinic:
+		m.ResetClinic()
+		return nil
+	case clinicuser.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ClinicUser edge %s", name)
 }
 
 // DoctorMutation represents an operation that mutates the Doctor nodes in the graph.
@@ -27212,26 +27700,27 @@ func (m *SessionMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *uuid.UUID
-	email           *string
-	password_hash   *string
-	name            *string
-	role            *user.Role
-	phone           *string
-	active          *bool
-	created_at      *time.Time
-	updated_at      *time.Time
-	clearedFields   map[string]struct{}
-	sessions        map[uuid.UUID]struct{}
-	removedsessions map[uuid.UUID]struct{}
-	clearedsessions bool
-	clinic          *uuid.UUID
-	clearedclinic   bool
-	done            bool
-	oldValue        func(context.Context) (*User, error)
-	predicates      []predicate.User
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	email               *string
+	password_hash       *string
+	name                *string
+	role                *user.Role
+	phone               *string
+	active              *bool
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	sessions            map[uuid.UUID]struct{}
+	removedsessions     map[uuid.UUID]struct{}
+	clearedsessions     bool
+	clinic_users        map[uuid.UUID]struct{}
+	removedclinic_users map[uuid.UUID]struct{}
+	clearedclinic_users bool
+	done                bool
+	oldValue            func(context.Context) (*User, error)
+	predicates          []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -27693,43 +28182,58 @@ func (m *UserMutation) ResetSessions() {
 	m.removedsessions = nil
 }
 
-// SetClinicID sets the "clinic" edge to the Clinic entity by id.
-func (m *UserMutation) SetClinicID(id uuid.UUID) {
-	m.clinic = &id
+// AddClinicUserIDs adds the "clinic_users" edge to the ClinicUser entity by ids.
+func (m *UserMutation) AddClinicUserIDs(ids ...uuid.UUID) {
+	if m.clinic_users == nil {
+		m.clinic_users = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.clinic_users[ids[i]] = struct{}{}
+	}
 }
 
-// ClearClinic clears the "clinic" edge to the Clinic entity.
-func (m *UserMutation) ClearClinic() {
-	m.clearedclinic = true
+// ClearClinicUsers clears the "clinic_users" edge to the ClinicUser entity.
+func (m *UserMutation) ClearClinicUsers() {
+	m.clearedclinic_users = true
 }
 
-// ClinicCleared reports if the "clinic" edge to the Clinic entity was cleared.
-func (m *UserMutation) ClinicCleared() bool {
-	return m.clearedclinic
+// ClinicUsersCleared reports if the "clinic_users" edge to the ClinicUser entity was cleared.
+func (m *UserMutation) ClinicUsersCleared() bool {
+	return m.clearedclinic_users
 }
 
-// ClinicID returns the "clinic" edge ID in the mutation.
-func (m *UserMutation) ClinicID() (id uuid.UUID, exists bool) {
-	if m.clinic != nil {
-		return *m.clinic, true
+// RemoveClinicUserIDs removes the "clinic_users" edge to the ClinicUser entity by IDs.
+func (m *UserMutation) RemoveClinicUserIDs(ids ...uuid.UUID) {
+	if m.removedclinic_users == nil {
+		m.removedclinic_users = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.clinic_users, ids[i])
+		m.removedclinic_users[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedClinicUsers returns the removed IDs of the "clinic_users" edge to the ClinicUser entity.
+func (m *UserMutation) RemovedClinicUsersIDs() (ids []uuid.UUID) {
+	for id := range m.removedclinic_users {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// ClinicIDs returns the "clinic" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ClinicID instead. It exists only for internal usage by the builders.
-func (m *UserMutation) ClinicIDs() (ids []uuid.UUID) {
-	if id := m.clinic; id != nil {
-		ids = append(ids, *id)
+// ClinicUsersIDs returns the "clinic_users" edge IDs in the mutation.
+func (m *UserMutation) ClinicUsersIDs() (ids []uuid.UUID) {
+	for id := range m.clinic_users {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetClinic resets all changes to the "clinic" edge.
-func (m *UserMutation) ResetClinic() {
-	m.clinic = nil
-	m.clearedclinic = false
+// ResetClinicUsers resets all changes to the "clinic_users" edge.
+func (m *UserMutation) ResetClinicUsers() {
+	m.clinic_users = nil
+	m.clearedclinic_users = false
+	m.removedclinic_users = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -27997,8 +28501,8 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.sessions != nil {
 		edges = append(edges, user.EdgeSessions)
 	}
-	if m.clinic != nil {
-		edges = append(edges, user.EdgeClinic)
+	if m.clinic_users != nil {
+		edges = append(edges, user.EdgeClinicUsers)
 	}
 	return edges
 }
@@ -28013,10 +28517,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeClinic:
-		if id := m.clinic; id != nil {
-			return []ent.Value{*id}
+	case user.EdgeClinicUsers:
+		ids := make([]ent.Value, 0, len(m.clinic_users))
+		for id := range m.clinic_users {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
@@ -28026,6 +28532,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.removedsessions != nil {
 		edges = append(edges, user.EdgeSessions)
+	}
+	if m.removedclinic_users != nil {
+		edges = append(edges, user.EdgeClinicUsers)
 	}
 	return edges
 }
@@ -28040,6 +28549,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeClinicUsers:
+		ids := make([]ent.Value, 0, len(m.removedclinic_users))
+		for id := range m.removedclinic_users {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -28050,8 +28565,8 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedsessions {
 		edges = append(edges, user.EdgeSessions)
 	}
-	if m.clearedclinic {
-		edges = append(edges, user.EdgeClinic)
+	if m.clearedclinic_users {
+		edges = append(edges, user.EdgeClinicUsers)
 	}
 	return edges
 }
@@ -28062,8 +28577,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeSessions:
 		return m.clearedsessions
-	case user.EdgeClinic:
-		return m.clearedclinic
+	case user.EdgeClinicUsers:
+		return m.clearedclinic_users
 	}
 	return false
 }
@@ -28072,9 +28587,6 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *UserMutation) ClearEdge(name string) error {
 	switch name {
-	case user.EdgeClinic:
-		m.ClearClinic()
-		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
 }
@@ -28086,8 +28598,8 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeSessions:
 		m.ResetSessions()
 		return nil
-	case user.EdgeClinic:
-		m.ResetClinic()
+	case user.EdgeClinicUsers:
+		m.ResetClinicUsers()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

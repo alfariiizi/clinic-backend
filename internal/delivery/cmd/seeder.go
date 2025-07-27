@@ -12,6 +12,7 @@ var seederCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client := db.NewDB()
 		seeder.GenerateAdmin(client)
+		// seeder.GenerateDefaultTenant(client)
 	},
 }
 

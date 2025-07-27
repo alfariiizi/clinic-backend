@@ -92,6 +92,15 @@ tasks:
     requires:
       vars: [group, name, method]
 
+  create:http-handler:crud:
+    desc: Generate CRUD for HTTP handler code
+    cmds:
+      - echo "Regenerate CRUD HTTP handlers..."
+      - go run ./cmd/http/crud/main.go {{.model | title}}
+      - go run ./cmd/http/cmd-regenerate-handler/main.go
+    requires:
+      vars: [model]
+
   create:service:http-handler:
     desc: Create a new HTTP handler for a service
     cmds:

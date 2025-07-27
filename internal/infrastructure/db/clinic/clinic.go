@@ -39,8 +39,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeUsers holds the string denoting the users edge name in mutations.
-	EdgeUsers = "users"
+	// EdgeClinicUsers holds the string denoting the clinic_users edge name in mutations.
+	EdgeClinicUsers = "clinic_users"
 	// EdgePatients holds the string denoting the patients edge name in mutations.
 	EdgePatients = "patients"
 	// EdgeDoctors holds the string denoting the doctors edge name in mutations.
@@ -67,13 +67,13 @@ const (
 	EdgeOrders = "orders"
 	// Table holds the table name of the clinic in the database.
 	Table = "clinics"
-	// UsersTable is the table that holds the users relation/edge.
-	UsersTable = "users"
-	// UsersInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UsersInverseTable = "users"
-	// UsersColumn is the table column denoting the users relation/edge.
-	UsersColumn = "clinic_users"
+	// ClinicUsersTable is the table that holds the clinic_users relation/edge.
+	ClinicUsersTable = "clinic_users"
+	// ClinicUsersInverseTable is the table name for the ClinicUser entity.
+	// It exists in this package in order to avoid circular dependency with the "clinicuser" package.
+	ClinicUsersInverseTable = "clinic_users"
+	// ClinicUsersColumn is the table column denoting the clinic_users relation/edge.
+	ClinicUsersColumn = "clinic_id"
 	// PatientsTable is the table that holds the patients relation/edge.
 	PatientsTable = "patients"
 	// PatientsInverseTable is the table name for the Patient entity.
@@ -260,17 +260,17 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByUsersCount orders the results by users count.
-func ByUsersCount(opts ...sql.OrderTermOption) OrderOption {
+// ByClinicUsersCount orders the results by clinic_users count.
+func ByClinicUsersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newUsersStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newClinicUsersStep(), opts...)
 	}
 }
 
-// ByUsers orders the results by users terms.
-func ByUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByClinicUsers orders the results by clinic_users terms.
+func ByClinicUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newClinicUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -441,11 +441,11 @@ func ByOrders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOrdersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newUsersStep() *sqlgraph.Step {
+func newClinicUsersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UsersInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, UsersTable, UsersColumn),
+		sqlgraph.To(ClinicUsersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ClinicUsersTable, ClinicUsersColumn),
 	)
 }
 func newPatientsStep() *sqlgraph.Step {

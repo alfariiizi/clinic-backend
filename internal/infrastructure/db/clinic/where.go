@@ -701,21 +701,21 @@ func UpdatedAtLTE(v time.Time) predicate.Clinic {
 	return predicate.Clinic(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasUsers applies the HasEdge predicate on the "users" edge.
-func HasUsers() predicate.Clinic {
+// HasClinicUsers applies the HasEdge predicate on the "clinic_users" edge.
+func HasClinicUsers() predicate.Clinic {
 	return predicate.Clinic(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UsersTable, UsersColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ClinicUsersTable, ClinicUsersColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
-func HasUsersWith(preds ...predicate.User) predicate.Clinic {
+// HasClinicUsersWith applies the HasEdge predicate on the "clinic_users" edge with a given conditions (other predicates).
+func HasClinicUsersWith(preds ...predicate.ClinicUser) predicate.Clinic {
 	return predicate.Clinic(func(s *sql.Selector) {
-		step := newUsersStep()
+		step := newClinicUsersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

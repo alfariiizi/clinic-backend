@@ -14,6 +14,7 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/billingrecord"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatthread"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctor"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/document"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/inventorymovement"
@@ -23,7 +24,6 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/product"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/productcategory"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/service"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
 	"github.com/google/uuid"
 )
 
@@ -184,19 +184,19 @@ func (cc *ClinicCreate) SetNillableID(u *uuid.UUID) *ClinicCreate {
 	return cc
 }
 
-// AddUserIDs adds the "users" edge to the User entity by IDs.
-func (cc *ClinicCreate) AddUserIDs(ids ...uuid.UUID) *ClinicCreate {
-	cc.mutation.AddUserIDs(ids...)
+// AddClinicUserIDs adds the "clinic_users" edge to the ClinicUser entity by IDs.
+func (cc *ClinicCreate) AddClinicUserIDs(ids ...uuid.UUID) *ClinicCreate {
+	cc.mutation.AddClinicUserIDs(ids...)
 	return cc
 }
 
-// AddUsers adds the "users" edges to the User entity.
-func (cc *ClinicCreate) AddUsers(u ...*User) *ClinicCreate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddClinicUsers adds the "clinic_users" edges to the ClinicUser entity.
+func (cc *ClinicCreate) AddClinicUsers(c ...*ClinicUser) *ClinicCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return cc.AddUserIDs(ids...)
+	return cc.AddClinicUserIDs(ids...)
 }
 
 // AddPatientIDs adds the "patients" edge to the Patient entity by IDs.
@@ -542,15 +542,15 @@ func (cc *ClinicCreate) createSpec() (*Clinic, *sqlgraph.CreateSpec) {
 		_spec.SetField(clinic.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := cc.mutation.UsersIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.ClinicUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   clinic.UsersTable,
-			Columns: []string{clinic.UsersColumn},
+			Table:   clinic.ClinicUsersTable,
+			Columns: []string{clinic.ClinicUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(clinicuser.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -25,7 +25,7 @@ func (Doctor) Fields() []ent.Field {
 		field.String("phone").Optional(),
 		field.Text("bio").Optional(),
 		field.JSON("qualifications", []string{}).Optional(),
-		field.JSON("availability", map[string]interface{}{}).Comment("weekly schedule"),
+		field.JSON("availability", map[string]any{}).Comment("weekly schedule"),
 		field.Int("consultation_duration").Default(30).Comment("in minutes"),
 		field.Float("consultation_fee").Default(0),
 		field.Bool("active").Default(true),

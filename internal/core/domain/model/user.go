@@ -1,10 +1,9 @@
 package domain
 
 import (
-	"fmt"
-
 	domain_builder "github.com/alfariiizi/vandor/internal/core/domain/builder"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db"
+	"github.com/alfariiizi/vandor/internal/utils"
 )
 
 type User struct {
@@ -26,6 +25,11 @@ func (u *User) CanLogin() bool {
 	return u.Email != ""
 }
 
-func (u *User) FullName() string {
-	return fmt.Sprintf("%s %s", u.Name)
+func (u *User) IsPasswordMatches(password string) bool {
+	// passwordHash, err := utils.HashPassword(password)
+	// if err != nil {
+	// 	return false
+	// }
+	// log.Printf("Comparing password hash: %s with user password hash: %s", *passwordHash, u.PasswordHash)
+	return utils.VerifyPassword(password, u.PasswordHash)
 }

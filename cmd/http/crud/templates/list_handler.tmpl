@@ -1,0 +1,62 @@
+package {{.SnakeCase}}_handler
+
+import (
+	"context"
+
+	"github.com/danielgtaylor/huma/v2"
+	"{{.Module}}/internal/core/model"
+	"{{.Module}}/internal/infrastructure/db"
+	"{{.Module}}/internal/core/service"
+	"{{.Module}}/internal/delivery/http/api"
+	"{{.Module}}/internal/delivery/http/method"
+	"{{.Module}}/internal/types"
+)
+
+type List{{.Model}}Input struct {
+	model.HTTPInputHeaderTenant
+	Query string `query:"q" doc:"Query parameter for filtering" example:"search term"`
+}
+
+type List{{.Model}}Output types.OutputResponseData[List{{.Model}}Data]
+
+type List{{.Model}}Data []*db.{{.Model}}
+
+type List{{.Model}}Handler model.HTTPHandler[List{{.Model}}Input, List{{.Model}}Output]
+
+type list{{.Model}} struct {
+	api     huma.API
+	service *service.Services
+	client  *db.Client
+}
+
+func NewList{{.Model}}(
+	api *api.HttpApi,
+	service *service.Services,
+	client *db.Client,
+) List{{.Model}}Handler {
+	h := &list{{.Model}}{
+		api:     api.BaseAPI,
+		service: service,
+		client:  client,
+	}
+	h.RegisterRoutes()
+	return h
+}
+
+func (h *list{{.Model}}) RegisterRoutes() {
+	api := h.api
+	method.GET(api, "/{{.PluralKebab}}", method.Operation{
+		Summary:     "List {{.ModelPlural}}",
+		Description: "Retrieve a list of {{.ModelPluralLower}}",
+		Tags:        []string{"{{.Model}}"},
+		BearerAuth:  true,
+	}, h.Handler)
+}
+
+func (h *list{{.Model}}) Handler(ctx context.Context, input *List{{.Model}}Input) (*List{{.Model}}Output, error) {
+	items, err := h.client.{{.Model}}.Query().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return (*List{{.Model}}Output)(types.GenerateOutputResponseData(List{{.Model}}Data(items))), nil
+}

@@ -30,6 +30,9 @@ type ChatThread func(*sql.Selector)
 // Clinic is the predicate function for clinic builders.
 type Clinic func(*sql.Selector)
 
+// ClinicUser is the predicate function for clinicuser builders.
+type ClinicUser func(*sql.Selector)
+
 // Doctor is the predicate function for doctor builders.
 type Doctor func(*sql.Selector)
 

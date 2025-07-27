@@ -24,6 +24,7 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatmessage"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatthread"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctor"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctorschedule"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/document"
@@ -63,6 +64,8 @@ type Client struct {
 	ChatThread *ChatThreadClient
 	// Clinic is the client for interacting with the Clinic builders.
 	Clinic *ClinicClient
+	// ClinicUser is the client for interacting with the ClinicUser builders.
+	ClinicUser *ClinicUserClient
 	// Doctor is the client for interacting with the Doctor builders.
 	Doctor *DoctorClient
 	// DoctorSchedule is the client for interacting with the DoctorSchedule builders.
@@ -114,6 +117,7 @@ func (c *Client) init() {
 	c.ChatMessage = NewChatMessageClient(c.config)
 	c.ChatThread = NewChatThreadClient(c.config)
 	c.Clinic = NewClinicClient(c.config)
+	c.ClinicUser = NewClinicUserClient(c.config)
 	c.Doctor = NewDoctorClient(c.config)
 	c.DoctorSchedule = NewDoctorScheduleClient(c.config)
 	c.Document = NewDocumentClient(c.config)
@@ -230,6 +234,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ChatMessage:         NewChatMessageClient(cfg),
 		ChatThread:          NewChatThreadClient(cfg),
 		Clinic:              NewClinicClient(cfg),
+		ClinicUser:          NewClinicUserClient(cfg),
 		Doctor:              NewDoctorClient(cfg),
 		DoctorSchedule:      NewDoctorScheduleClient(cfg),
 		Document:            NewDocumentClient(cfg),
@@ -273,6 +278,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ChatMessage:         NewChatMessageClient(cfg),
 		ChatThread:          NewChatThreadClient(cfg),
 		Clinic:              NewClinicClient(cfg),
+		ClinicUser:          NewClinicUserClient(cfg),
 		Doctor:              NewDoctorClient(cfg),
 		DoctorSchedule:      NewDoctorScheduleClient(cfg),
 		Document:            NewDocumentClient(cfg),
@@ -319,7 +325,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AIInteraction, c.AdminAuditLog, c.Appointment, c.AppointmentReminder,
-		c.BillingRecord, c.ChatMessage, c.ChatThread, c.Clinic, c.Doctor,
+		c.BillingRecord, c.ChatMessage, c.ChatThread, c.Clinic, c.ClinicUser, c.Doctor,
 		c.DoctorSchedule, c.Document, c.Feature, c.InventoryMovement, c.KnowledgeBase,
 		c.Order, c.OrderItem, c.OrderStatusHistory, c.Patient, c.Product,
 		c.ProductCategory, c.QueueEntry, c.Service, c.Session, c.User,
@@ -333,7 +339,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AIInteraction, c.AdminAuditLog, c.Appointment, c.AppointmentReminder,
-		c.BillingRecord, c.ChatMessage, c.ChatThread, c.Clinic, c.Doctor,
+		c.BillingRecord, c.ChatMessage, c.ChatThread, c.Clinic, c.ClinicUser, c.Doctor,
 		c.DoctorSchedule, c.Document, c.Feature, c.InventoryMovement, c.KnowledgeBase,
 		c.Order, c.OrderItem, c.OrderStatusHistory, c.Patient, c.Product,
 		c.ProductCategory, c.QueueEntry, c.Service, c.Session, c.User,
@@ -361,6 +367,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ChatThread.mutate(ctx, m)
 	case *ClinicMutation:
 		return c.Clinic.mutate(ctx, m)
+	case *ClinicUserMutation:
+		return c.ClinicUser.mutate(ctx, m)
 	case *DoctorMutation:
 		return c.Doctor.mutate(ctx, m)
 	case *DoctorScheduleMutation:
@@ -1645,15 +1653,15 @@ func (c *ClinicClient) GetX(ctx context.Context, id uuid.UUID) *Clinic {
 	return obj
 }
 
-// QueryUsers queries the users edge of a Clinic.
-func (c *ClinicClient) QueryUsers(cl *Clinic) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
+// QueryClinicUsers queries the clinic_users edge of a Clinic.
+func (c *ClinicClient) QueryClinicUsers(cl *Clinic) *ClinicUserQuery {
+	query := (&ClinicUserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := cl.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(clinic.Table, clinic.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, clinic.UsersTable, clinic.UsersColumn),
+			sqlgraph.To(clinicuser.Table, clinicuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clinic.ClinicUsersTable, clinic.ClinicUsersColumn),
 		)
 		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
 		return fromV, nil
@@ -1875,6 +1883,171 @@ func (c *ClinicClient) mutate(ctx context.Context, m *ClinicMutation) (Value, er
 		return (&ClinicDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Clinic mutation op: %q", m.Op())
+	}
+}
+
+// ClinicUserClient is a client for the ClinicUser schema.
+type ClinicUserClient struct {
+	config
+}
+
+// NewClinicUserClient returns a client for the ClinicUser from the given config.
+func NewClinicUserClient(c config) *ClinicUserClient {
+	return &ClinicUserClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `clinicuser.Hooks(f(g(h())))`.
+func (c *ClinicUserClient) Use(hooks ...Hook) {
+	c.hooks.ClinicUser = append(c.hooks.ClinicUser, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `clinicuser.Intercept(f(g(h())))`.
+func (c *ClinicUserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ClinicUser = append(c.inters.ClinicUser, interceptors...)
+}
+
+// Create returns a builder for creating a ClinicUser entity.
+func (c *ClinicUserClient) Create() *ClinicUserCreate {
+	mutation := newClinicUserMutation(c.config, OpCreate)
+	return &ClinicUserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ClinicUser entities.
+func (c *ClinicUserClient) CreateBulk(builders ...*ClinicUserCreate) *ClinicUserCreateBulk {
+	return &ClinicUserCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ClinicUserClient) MapCreateBulk(slice any, setFunc func(*ClinicUserCreate, int)) *ClinicUserCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ClinicUserCreateBulk{err: fmt.Errorf("calling to ClinicUserClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ClinicUserCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ClinicUserCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ClinicUser.
+func (c *ClinicUserClient) Update() *ClinicUserUpdate {
+	mutation := newClinicUserMutation(c.config, OpUpdate)
+	return &ClinicUserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ClinicUserClient) UpdateOne(cu *ClinicUser) *ClinicUserUpdateOne {
+	mutation := newClinicUserMutation(c.config, OpUpdateOne, withClinicUser(cu))
+	return &ClinicUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ClinicUserClient) UpdateOneID(id uuid.UUID) *ClinicUserUpdateOne {
+	mutation := newClinicUserMutation(c.config, OpUpdateOne, withClinicUserID(id))
+	return &ClinicUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ClinicUser.
+func (c *ClinicUserClient) Delete() *ClinicUserDelete {
+	mutation := newClinicUserMutation(c.config, OpDelete)
+	return &ClinicUserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ClinicUserClient) DeleteOne(cu *ClinicUser) *ClinicUserDeleteOne {
+	return c.DeleteOneID(cu.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ClinicUserClient) DeleteOneID(id uuid.UUID) *ClinicUserDeleteOne {
+	builder := c.Delete().Where(clinicuser.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ClinicUserDeleteOne{builder}
+}
+
+// Query returns a query builder for ClinicUser.
+func (c *ClinicUserClient) Query() *ClinicUserQuery {
+	return &ClinicUserQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeClinicUser},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ClinicUser entity by its id.
+func (c *ClinicUserClient) Get(ctx context.Context, id uuid.UUID) (*ClinicUser, error) {
+	return c.Query().Where(clinicuser.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ClinicUserClient) GetX(ctx context.Context, id uuid.UUID) *ClinicUser {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryClinic queries the clinic edge of a ClinicUser.
+func (c *ClinicUserClient) QueryClinic(cu *ClinicUser) *ClinicQuery {
+	query := (&ClinicClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cu.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clinicuser.Table, clinicuser.FieldID, id),
+			sqlgraph.To(clinic.Table, clinic.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, clinicuser.ClinicTable, clinicuser.ClinicColumn),
+		)
+		fromV = sqlgraph.Neighbors(cu.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a ClinicUser.
+func (c *ClinicUserClient) QueryUser(cu *ClinicUser) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cu.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clinicuser.Table, clinicuser.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, clinicuser.UserTable, clinicuser.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(cu.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ClinicUserClient) Hooks() []Hook {
+	return c.hooks.ClinicUser
+}
+
+// Interceptors returns the client interceptors.
+func (c *ClinicUserClient) Interceptors() []Interceptor {
+	return c.inters.ClinicUser
+}
+
+func (c *ClinicUserClient) mutate(ctx context.Context, m *ClinicUserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ClinicUserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ClinicUserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ClinicUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ClinicUserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown ClinicUser mutation op: %q", m.Op())
 	}
 }
 
@@ -4541,15 +4714,15 @@ func (c *UserClient) QuerySessions(u *User) *SessionQuery {
 	return query
 }
 
-// QueryClinic queries the clinic edge of a User.
-func (c *UserClient) QueryClinic(u *User) *ClinicQuery {
-	query := (&ClinicClient{config: c.config}).Query()
+// QueryClinicUsers queries the clinic_users edge of a User.
+func (c *UserClient) QueryClinicUsers(u *User) *ClinicUserQuery {
+	query := (&ClinicUserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(clinic.Table, clinic.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, user.ClinicTable, user.ClinicColumn),
+			sqlgraph.To(clinicuser.Table, clinicuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ClinicUsersTable, user.ClinicUsersColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -4586,16 +4759,16 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AIInteraction, AdminAuditLog, Appointment, AppointmentReminder, BillingRecord,
-		ChatMessage, ChatThread, Clinic, Doctor, DoctorSchedule, Document, Feature,
-		InventoryMovement, KnowledgeBase, Order, OrderItem, OrderStatusHistory,
-		Patient, Product, ProductCategory, QueueEntry, Service, Session,
-		User []ent.Hook
+		ChatMessage, ChatThread, Clinic, ClinicUser, Doctor, DoctorSchedule, Document,
+		Feature, InventoryMovement, KnowledgeBase, Order, OrderItem,
+		OrderStatusHistory, Patient, Product, ProductCategory, QueueEntry, Service,
+		Session, User []ent.Hook
 	}
 	inters struct {
 		AIInteraction, AdminAuditLog, Appointment, AppointmentReminder, BillingRecord,
-		ChatMessage, ChatThread, Clinic, Doctor, DoctorSchedule, Document, Feature,
-		InventoryMovement, KnowledgeBase, Order, OrderItem, OrderStatusHistory,
-		Patient, Product, ProductCategory, QueueEntry, Service, Session,
-		User []ent.Interceptor
+		ChatMessage, ChatThread, Clinic, ClinicUser, Doctor, DoctorSchedule, Document,
+		Feature, InventoryMovement, KnowledgeBase, Order, OrderItem,
+		OrderStatusHistory, Patient, Product, ProductCategory, QueueEntry, Service,
+		Session, User []ent.Interceptor
 	}
 )

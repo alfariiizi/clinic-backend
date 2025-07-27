@@ -494,21 +494,21 @@ func HasSessionsWith(preds ...predicate.Session) predicate.User {
 	})
 }
 
-// HasClinic applies the HasEdge predicate on the "clinic" edge.
-func HasClinic() predicate.User {
+// HasClinicUsers applies the HasEdge predicate on the "clinic_users" edge.
+func HasClinicUsers() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ClinicTable, ClinicColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ClinicUsersTable, ClinicUsersColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasClinicWith applies the HasEdge predicate on the "clinic" edge with a given conditions (other predicates).
-func HasClinicWith(preds ...predicate.Clinic) predicate.User {
+// HasClinicUsersWith applies the HasEdge predicate on the "clinic_users" edge with a given conditions (other predicates).
+func HasClinicUsersWith(preds ...predicate.ClinicUser) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newClinicStep()
+		step := newClinicUsersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

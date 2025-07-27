@@ -345,6 +345,32 @@ var (
 			},
 		},
 	}
+	// ClinicUsersColumns holds the columns for the "clinic_users" table.
+	ClinicUsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "clinic_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// ClinicUsersTable holds the schema information for the "clinic_users" table.
+	ClinicUsersTable = &schema.Table{
+		Name:       "clinic_users",
+		Columns:    ClinicUsersColumns,
+		PrimaryKey: []*schema.Column{ClinicUsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "clinic_users_clinics_clinic_users",
+				Columns:    []*schema.Column{ClinicUsersColumns[1]},
+				RefColumns: []*schema.Column{ClinicsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "clinic_users_users_clinic_users",
+				Columns:    []*schema.Column{ClinicUsersColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// DoctorsColumns holds the columns for the "doctors" table.
 	DoctorsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -1001,21 +1027,12 @@ var (
 		{Name: "active", Type: field.TypeBool, Default: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "clinic_users", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "users_clinics_users",
-				Columns:    []*schema.Column{UsersColumns[9]},
-				RefColumns: []*schema.Column{ClinicsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "user_email",
@@ -1039,6 +1056,7 @@ var (
 		ChatMessagesTable,
 		ChatThreadsTable,
 		ClinicsTable,
+		ClinicUsersTable,
 		DoctorsTable,
 		DoctorSchedulesTable,
 		DocumentsTable,
@@ -1069,6 +1087,8 @@ func init() {
 	ChatMessagesTable.ForeignKeys[0].RefTable = ChatThreadsTable
 	ChatThreadsTable.ForeignKeys[0].RefTable = ClinicsTable
 	ChatThreadsTable.ForeignKeys[1].RefTable = PatientsTable
+	ClinicUsersTable.ForeignKeys[0].RefTable = ClinicsTable
+	ClinicUsersTable.ForeignKeys[1].RefTable = UsersTable
 	DoctorsTable.ForeignKeys[0].RefTable = ClinicsTable
 	DoctorSchedulesTable.ForeignKeys[0].RefTable = DoctorsTable
 	DocumentsTable.ForeignKeys[0].RefTable = ClinicsTable
@@ -1089,5 +1109,4 @@ func init() {
 	ProductCategoriesTable.ForeignKeys[0].RefTable = ClinicsTable
 	ServicesTable.ForeignKeys[0].RefTable = ClinicsTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
-	UsersTable.ForeignKeys[0].RefTable = ClinicsTable
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatmessage"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatthread"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctor"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctorschedule"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/document"
@@ -169,6 +170,12 @@ func init() {
 	clinicDescID := clinicFields[0].Descriptor()
 	// clinic.DefaultID holds the default value on creation for the id field.
 	clinic.DefaultID = clinicDescID.Default.(func() uuid.UUID)
+	clinicuserFields := schema.ClinicUser{}.Fields()
+	_ = clinicuserFields
+	// clinicuserDescID is the schema descriptor for id field.
+	clinicuserDescID := clinicuserFields[0].Descriptor()
+	// clinicuser.DefaultID holds the default value on creation for the id field.
+	clinicuser.DefaultID = clinicuserDescID.Default.(func() uuid.UUID)
 	doctorFields := schema.Doctor{}.Fields()
 	_ = doctorFields
 	// doctorDescConsultationDuration is the schema descriptor for consultation_duration field.

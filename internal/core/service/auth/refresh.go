@@ -77,7 +77,7 @@ func (s *refresh) Process(ctx context.Context, input RefreshInput) (*RefreshOutp
 	accessToken, err := s.usecase.CreateAccessToken.Execute(ctx, usecase.CreateAccessTokenInput{
 		UserID:    sessionOne.UserID.String(),
 		SessionID: sessionOne.ID.String(),
-		Name:      userOne.FullName(),
+		Name:      userOne.Name,
 		Email:     userOne.Email,
 		Role:      userOne.Role.String(),
 	})

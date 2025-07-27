@@ -34,7 +34,12 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("sessions", Session.Type),
-		edge.From("clinic", Clinic.Type).Ref("users").Unique(),
+		edge.To("clinic_users", ClinicUser.Type),
+		// edge.From("clinic_users", ClinicUser.Type).
+		// 	Ref("user").
+		// 	Unique().
+		// 	Field("clinic_user_id"),
+		// edge.From("clinic", Clinic.Type).Ref("users").Unique(),
 	}
 }
 

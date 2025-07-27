@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
 	"github.com/google/uuid"
 )
@@ -38,7 +37,6 @@ type User struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
-	clinic_users *uuid.UUID
 	selectValues sql.SelectValues
 }
 
@@ -46,8 +44,8 @@ type User struct {
 type UserEdges struct {
 	// Sessions holds the value of the sessions edge.
 	Sessions []*Session `json:"sessions,omitempty"`
-	// Clinic holds the value of the clinic edge.
-	Clinic *Clinic `json:"clinic,omitempty"`
+	// ClinicUsers holds the value of the clinic_users edge.
+	ClinicUsers []*ClinicUser `json:"clinic_users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -62,15 +60,13 @@ func (e UserEdges) SessionsOrErr() ([]*Session, error) {
 	return nil, &NotLoadedError{edge: "sessions"}
 }
 
-// ClinicOrErr returns the Clinic value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) ClinicOrErr() (*Clinic, error) {
-	if e.Clinic != nil {
-		return e.Clinic, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: clinic.Label}
+// ClinicUsersOrErr returns the ClinicUsers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ClinicUsersOrErr() ([]*ClinicUser, error) {
+	if e.loadedTypes[1] {
+		return e.ClinicUsers, nil
 	}
-	return nil, &NotLoadedError{edge: "clinic"}
+	return nil, &NotLoadedError{edge: "clinic_users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -86,8 +82,6 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
-		case user.ForeignKeys[0]: // clinic_users
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -157,13 +151,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
 			}
-		case user.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field clinic_users", values[i])
-			} else if value.Valid {
-				u.clinic_users = new(uuid.UUID)
-				*u.clinic_users = *value.S.(*uuid.UUID)
-			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -182,9 +169,9 @@ func (u *User) QuerySessions() *SessionQuery {
 	return NewUserClient(u.config).QuerySessions(u)
 }
 
-// QueryClinic queries the "clinic" edge of the User entity.
-func (u *User) QueryClinic() *ClinicQuery {
-	return NewUserClient(u.config).QueryClinic(u)
+// QueryClinicUsers queries the "clinic_users" edge of the User entity.
+func (u *User) QueryClinicUsers() *ClinicUserQuery {
+	return NewUserClient(u.config).QueryClinicUsers(u)
 }
 
 // Update returns a builder for updating this User.

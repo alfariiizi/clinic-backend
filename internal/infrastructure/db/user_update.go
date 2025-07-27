@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/predicate"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/session"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
@@ -156,23 +156,19 @@ func (uu *UserUpdate) AddSessions(s ...*Session) *UserUpdate {
 	return uu.AddSessionIDs(ids...)
 }
 
-// SetClinicID sets the "clinic" edge to the Clinic entity by ID.
-func (uu *UserUpdate) SetClinicID(id uuid.UUID) *UserUpdate {
-	uu.mutation.SetClinicID(id)
+// AddClinicUserIDs adds the "clinic_users" edge to the ClinicUser entity by IDs.
+func (uu *UserUpdate) AddClinicUserIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddClinicUserIDs(ids...)
 	return uu
 }
 
-// SetNillableClinicID sets the "clinic" edge to the Clinic entity by ID if the given value is not nil.
-func (uu *UserUpdate) SetNillableClinicID(id *uuid.UUID) *UserUpdate {
-	if id != nil {
-		uu = uu.SetClinicID(*id)
+// AddClinicUsers adds the "clinic_users" edges to the ClinicUser entity.
+func (uu *UserUpdate) AddClinicUsers(c ...*ClinicUser) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return uu
-}
-
-// SetClinic sets the "clinic" edge to the Clinic entity.
-func (uu *UserUpdate) SetClinic(c *Clinic) *UserUpdate {
-	return uu.SetClinicID(c.ID)
+	return uu.AddClinicUserIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -201,10 +197,25 @@ func (uu *UserUpdate) RemoveSessions(s ...*Session) *UserUpdate {
 	return uu.RemoveSessionIDs(ids...)
 }
 
-// ClearClinic clears the "clinic" edge to the Clinic entity.
-func (uu *UserUpdate) ClearClinic() *UserUpdate {
-	uu.mutation.ClearClinic()
+// ClearClinicUsers clears all "clinic_users" edges to the ClinicUser entity.
+func (uu *UserUpdate) ClearClinicUsers() *UserUpdate {
+	uu.mutation.ClearClinicUsers()
 	return uu
+}
+
+// RemoveClinicUserIDs removes the "clinic_users" edge to ClinicUser entities by IDs.
+func (uu *UserUpdate) RemoveClinicUserIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveClinicUserIDs(ids...)
+	return uu
+}
+
+// RemoveClinicUsers removes "clinic_users" edges to ClinicUser entities.
+func (uu *UserUpdate) RemoveClinicUsers(c ...*ClinicUser) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveClinicUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -337,28 +348,44 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.ClinicCleared() {
+	if uu.mutation.ClinicUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   user.ClinicTable,
-			Columns: []string{user.ClinicColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ClinicUsersTable,
+			Columns: []string{user.ClinicUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clinic.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(clinicuser.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.ClinicIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.RemovedClinicUsersIDs(); len(nodes) > 0 && !uu.mutation.ClinicUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   user.ClinicTable,
-			Columns: []string{user.ClinicColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ClinicUsersTable,
+			Columns: []string{user.ClinicUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clinic.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(clinicuser.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.ClinicUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ClinicUsersTable,
+			Columns: []string{user.ClinicUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clinicuser.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -511,23 +538,19 @@ func (uuo *UserUpdateOne) AddSessions(s ...*Session) *UserUpdateOne {
 	return uuo.AddSessionIDs(ids...)
 }
 
-// SetClinicID sets the "clinic" edge to the Clinic entity by ID.
-func (uuo *UserUpdateOne) SetClinicID(id uuid.UUID) *UserUpdateOne {
-	uuo.mutation.SetClinicID(id)
+// AddClinicUserIDs adds the "clinic_users" edge to the ClinicUser entity by IDs.
+func (uuo *UserUpdateOne) AddClinicUserIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddClinicUserIDs(ids...)
 	return uuo
 }
 
-// SetNillableClinicID sets the "clinic" edge to the Clinic entity by ID if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableClinicID(id *uuid.UUID) *UserUpdateOne {
-	if id != nil {
-		uuo = uuo.SetClinicID(*id)
+// AddClinicUsers adds the "clinic_users" edges to the ClinicUser entity.
+func (uuo *UserUpdateOne) AddClinicUsers(c ...*ClinicUser) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return uuo
-}
-
-// SetClinic sets the "clinic" edge to the Clinic entity.
-func (uuo *UserUpdateOne) SetClinic(c *Clinic) *UserUpdateOne {
-	return uuo.SetClinicID(c.ID)
+	return uuo.AddClinicUserIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -556,10 +579,25 @@ func (uuo *UserUpdateOne) RemoveSessions(s ...*Session) *UserUpdateOne {
 	return uuo.RemoveSessionIDs(ids...)
 }
 
-// ClearClinic clears the "clinic" edge to the Clinic entity.
-func (uuo *UserUpdateOne) ClearClinic() *UserUpdateOne {
-	uuo.mutation.ClearClinic()
+// ClearClinicUsers clears all "clinic_users" edges to the ClinicUser entity.
+func (uuo *UserUpdateOne) ClearClinicUsers() *UserUpdateOne {
+	uuo.mutation.ClearClinicUsers()
 	return uuo
+}
+
+// RemoveClinicUserIDs removes the "clinic_users" edge to ClinicUser entities by IDs.
+func (uuo *UserUpdateOne) RemoveClinicUserIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveClinicUserIDs(ids...)
+	return uuo
+}
+
+// RemoveClinicUsers removes "clinic_users" edges to ClinicUser entities.
+func (uuo *UserUpdateOne) RemoveClinicUsers(c ...*ClinicUser) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveClinicUserIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -722,28 +760,44 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.ClinicCleared() {
+	if uuo.mutation.ClinicUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   user.ClinicTable,
-			Columns: []string{user.ClinicColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ClinicUsersTable,
+			Columns: []string{user.ClinicUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clinic.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(clinicuser.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.ClinicIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.RemovedClinicUsersIDs(); len(nodes) > 0 && !uuo.mutation.ClinicUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   user.ClinicTable,
-			Columns: []string{user.ClinicColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ClinicUsersTable,
+			Columns: []string{user.ClinicUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clinic.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(clinicuser.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.ClinicUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ClinicUsersTable,
+			Columns: []string{user.ClinicUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clinicuser.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

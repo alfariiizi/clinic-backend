@@ -21,3 +21,7 @@ type HTTPHandlerMessage[I any] interface {
 	RegisterRoutes()
 	Handler(context.Context, *I) (*types.OutputResponseMessage, error)
 }
+
+type HTTPInputHeaderTenant struct {
+	TenantID string `header:"X-Tenant-ID" required:"true" doc:"The tenant ID for scoping the request"`
+}

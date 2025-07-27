@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/predicate"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/session"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
@@ -22,13 +22,12 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx          *QueryContext
-	order        []user.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.User
-	withSessions *SessionQuery
-	withClinic   *ClinicQuery
-	withFKs      bool
+	ctx             *QueryContext
+	order           []user.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.User
+	withSessions    *SessionQuery
+	withClinicUsers *ClinicUserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -87,9 +86,9 @@ func (uq *UserQuery) QuerySessions() *SessionQuery {
 	return query
 }
 
-// QueryClinic chains the current query on the "clinic" edge.
-func (uq *UserQuery) QueryClinic() *ClinicQuery {
-	query := (&ClinicClient{config: uq.config}).Query()
+// QueryClinicUsers chains the current query on the "clinic_users" edge.
+func (uq *UserQuery) QueryClinicUsers() *ClinicUserQuery {
+	query := (&ClinicUserClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -100,8 +99,8 @@ func (uq *UserQuery) QueryClinic() *ClinicQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(clinic.Table, clinic.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, user.ClinicTable, user.ClinicColumn),
+			sqlgraph.To(clinicuser.Table, clinicuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ClinicUsersTable, user.ClinicUsersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -296,13 +295,13 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:       uq.config,
-		ctx:          uq.ctx.Clone(),
-		order:        append([]user.OrderOption{}, uq.order...),
-		inters:       append([]Interceptor{}, uq.inters...),
-		predicates:   append([]predicate.User{}, uq.predicates...),
-		withSessions: uq.withSessions.Clone(),
-		withClinic:   uq.withClinic.Clone(),
+		config:          uq.config,
+		ctx:             uq.ctx.Clone(),
+		order:           append([]user.OrderOption{}, uq.order...),
+		inters:          append([]Interceptor{}, uq.inters...),
+		predicates:      append([]predicate.User{}, uq.predicates...),
+		withSessions:    uq.withSessions.Clone(),
+		withClinicUsers: uq.withClinicUsers.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -320,14 +319,14 @@ func (uq *UserQuery) WithSessions(opts ...func(*SessionQuery)) *UserQuery {
 	return uq
 }
 
-// WithClinic tells the query-builder to eager-load the nodes that are connected to
-// the "clinic" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithClinic(opts ...func(*ClinicQuery)) *UserQuery {
-	query := (&ClinicClient{config: uq.config}).Query()
+// WithClinicUsers tells the query-builder to eager-load the nodes that are connected to
+// the "clinic_users" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithClinicUsers(opts ...func(*ClinicUserQuery)) *UserQuery {
+	query := (&ClinicUserClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withClinic = query
+	uq.withClinicUsers = query
 	return uq
 }
 
@@ -408,19 +407,12 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
 		nodes       = []*User{}
-		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
 		loadedTypes = [2]bool{
 			uq.withSessions != nil,
-			uq.withClinic != nil,
+			uq.withClinicUsers != nil,
 		}
 	)
-	if uq.withClinic != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
 	}
@@ -446,9 +438,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withClinic; query != nil {
-		if err := uq.loadClinic(ctx, query, nodes, nil,
-			func(n *User, e *Clinic) { n.Edges.Clinic = e }); err != nil {
+	if query := uq.withClinicUsers; query != nil {
+		if err := uq.loadClinicUsers(ctx, query, nodes,
+			func(n *User) { n.Edges.ClinicUsers = []*ClinicUser{} },
+			func(n *User, e *ClinicUser) { n.Edges.ClinicUsers = append(n.Edges.ClinicUsers, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -485,35 +478,33 @@ func (uq *UserQuery) loadSessions(ctx context.Context, query *SessionQuery, node
 	}
 	return nil
 }
-func (uq *UserQuery) loadClinic(ctx context.Context, query *ClinicQuery, nodes []*User, init func(*User), assign func(*User, *Clinic)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*User)
+func (uq *UserQuery) loadClinicUsers(ctx context.Context, query *ClinicUserQuery, nodes []*User, init func(*User), assign func(*User, *ClinicUser)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
-		if nodes[i].clinic_users == nil {
-			continue
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
 		}
-		fk := *nodes[i].clinic_users
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(ids) == 0 {
-		return nil
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(clinicuser.FieldUserID)
 	}
-	query.Where(clinic.IDIn(ids...))
+	query.Where(predicate.ClinicUser(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ClinicUsersColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.UserID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "clinic_users" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }

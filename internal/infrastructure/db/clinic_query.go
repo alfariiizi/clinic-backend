@@ -16,6 +16,7 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/billingrecord"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatthread"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctor"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/document"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/inventorymovement"
@@ -26,7 +27,6 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/product"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/productcategory"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/service"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
 	"github.com/google/uuid"
 )
 
@@ -37,7 +37,7 @@ type ClinicQuery struct {
 	order                  []clinic.OrderOption
 	inters                 []Interceptor
 	predicates             []predicate.Clinic
-	withUsers              *UserQuery
+	withClinicUsers        *ClinicUserQuery
 	withPatients           *PatientQuery
 	withDoctors            *DoctorQuery
 	withServices           *ServiceQuery
@@ -86,9 +86,9 @@ func (cq *ClinicQuery) Order(o ...clinic.OrderOption) *ClinicQuery {
 	return cq
 }
 
-// QueryUsers chains the current query on the "users" edge.
-func (cq *ClinicQuery) QueryUsers() *UserQuery {
-	query := (&UserClient{config: cq.config}).Query()
+// QueryClinicUsers chains the current query on the "clinic_users" edge.
+func (cq *ClinicQuery) QueryClinicUsers() *ClinicUserQuery {
+	query := (&ClinicUserClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -99,8 +99,8 @@ func (cq *ClinicQuery) QueryUsers() *UserQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(clinic.Table, clinic.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, clinic.UsersTable, clinic.UsersColumn),
+			sqlgraph.To(clinicuser.Table, clinicuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clinic.ClinicUsersTable, clinic.ClinicUsersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -564,7 +564,7 @@ func (cq *ClinicQuery) Clone() *ClinicQuery {
 		order:                  append([]clinic.OrderOption{}, cq.order...),
 		inters:                 append([]Interceptor{}, cq.inters...),
 		predicates:             append([]predicate.Clinic{}, cq.predicates...),
-		withUsers:              cq.withUsers.Clone(),
+		withClinicUsers:        cq.withClinicUsers.Clone(),
 		withPatients:           cq.withPatients.Clone(),
 		withDoctors:            cq.withDoctors.Clone(),
 		withServices:           cq.withServices.Clone(),
@@ -583,14 +583,14 @@ func (cq *ClinicQuery) Clone() *ClinicQuery {
 	}
 }
 
-// WithUsers tells the query-builder to eager-load the nodes that are connected to
-// the "users" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ClinicQuery) WithUsers(opts ...func(*UserQuery)) *ClinicQuery {
-	query := (&UserClient{config: cq.config}).Query()
+// WithClinicUsers tells the query-builder to eager-load the nodes that are connected to
+// the "clinic_users" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ClinicQuery) WithClinicUsers(opts ...func(*ClinicUserQuery)) *ClinicQuery {
+	query := (&ClinicUserClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withUsers = query
+	cq.withClinicUsers = query
 	return cq
 }
 
@@ -805,7 +805,7 @@ func (cq *ClinicQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Clini
 		nodes       = []*Clinic{}
 		_spec       = cq.querySpec()
 		loadedTypes = [13]bool{
-			cq.withUsers != nil,
+			cq.withClinicUsers != nil,
 			cq.withPatients != nil,
 			cq.withDoctors != nil,
 			cq.withServices != nil,
@@ -838,10 +838,10 @@ func (cq *ClinicQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Clini
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := cq.withUsers; query != nil {
-		if err := cq.loadUsers(ctx, query, nodes,
-			func(n *Clinic) { n.Edges.Users = []*User{} },
-			func(n *Clinic, e *User) { n.Edges.Users = append(n.Edges.Users, e) }); err != nil {
+	if query := cq.withClinicUsers; query != nil {
+		if err := cq.loadClinicUsers(ctx, query, nodes,
+			func(n *Clinic) { n.Edges.ClinicUsers = []*ClinicUser{} },
+			func(n *Clinic, e *ClinicUser) { n.Edges.ClinicUsers = append(n.Edges.ClinicUsers, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -934,7 +934,7 @@ func (cq *ClinicQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Clini
 	return nodes, nil
 }
 
-func (cq *ClinicQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*Clinic, init func(*Clinic), assign func(*Clinic, *User)) error {
+func (cq *ClinicQuery) loadClinicUsers(ctx context.Context, query *ClinicUserQuery, nodes []*Clinic, init func(*Clinic), assign func(*Clinic, *ClinicUser)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Clinic)
 	for i := range nodes {
@@ -944,22 +944,21 @@ func (cq *ClinicQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
-	query.Where(predicate.User(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(clinic.UsersColumn), fks...))
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(clinicuser.FieldClinicID)
+	}
+	query.Where(predicate.ClinicUser(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(clinic.ClinicUsersColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.clinic_users
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "clinic_users" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.ClinicID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "clinic_users" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "clinic_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -25,7 +25,7 @@ func (Clinic) Fields() []ent.Field {
 		field.String("phone").Optional(),
 		field.String("email").Optional(),
 		field.Text("address").Optional(),
-		field.JSON("business_hours", map[string]interface{}{}).Optional(),
+		field.JSON("business_hours", map[string]any{}).Optional(),
 		field.String("whatsapp_number").Optional(),
 		field.String("subscription_plan").Default("basic"),
 		field.JSON("enabled_features", []string{}).Comment("array of enabled feature names"),
@@ -37,7 +37,8 @@ func (Clinic) Fields() []ent.Field {
 
 func (Clinic) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("users", User.Type),
+		// edge.To("users", User.Type),
+		edge.To("clinic_users", ClinicUser.Type),
 		edge.To("patients", Patient.Type),
 		edge.To("doctors", Doctor.Type),
 		edge.To("services", Service.Type),

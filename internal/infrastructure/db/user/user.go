@@ -34,8 +34,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
-	// EdgeClinic holds the string denoting the clinic edge name in mutations.
-	EdgeClinic = "clinic"
+	// EdgeClinicUsers holds the string denoting the clinic_users edge name in mutations.
+	EdgeClinicUsers = "clinic_users"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// SessionsTable is the table that holds the sessions relation/edge.
@@ -45,13 +45,13 @@ const (
 	SessionsInverseTable = "sessions"
 	// SessionsColumn is the table column denoting the sessions relation/edge.
 	SessionsColumn = "user_id"
-	// ClinicTable is the table that holds the clinic relation/edge.
-	ClinicTable = "users"
-	// ClinicInverseTable is the table name for the Clinic entity.
-	// It exists in this package in order to avoid circular dependency with the "clinic" package.
-	ClinicInverseTable = "clinics"
-	// ClinicColumn is the table column denoting the clinic relation/edge.
-	ClinicColumn = "clinic_users"
+	// ClinicUsersTable is the table that holds the clinic_users relation/edge.
+	ClinicUsersTable = "clinic_users"
+	// ClinicUsersInverseTable is the table name for the ClinicUser entity.
+	// It exists in this package in order to avoid circular dependency with the "clinicuser" package.
+	ClinicUsersInverseTable = "clinic_users"
+	// ClinicUsersColumn is the table column denoting the clinic_users relation/edge.
+	ClinicUsersColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -67,21 +67,10 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "users"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"clinic_users",
-}
-
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -187,10 +176,17 @@ func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByClinicField orders the results by clinic field.
-func ByClinicField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByClinicUsersCount orders the results by clinic_users count.
+func ByClinicUsersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newClinicStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newClinicUsersStep(), opts...)
+	}
+}
+
+// ByClinicUsers orders the results by clinic_users terms.
+func ByClinicUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newClinicUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newSessionsStep() *sqlgraph.Step {
@@ -200,10 +196,10 @@ func newSessionsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
 	)
 }
-func newClinicStep() *sqlgraph.Step {
+func newClinicUsersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ClinicInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ClinicTable, ClinicColumn),
+		sqlgraph.To(ClinicUsersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ClinicUsersTable, ClinicUsersColumn),
 	)
 }

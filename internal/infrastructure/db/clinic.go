@@ -51,8 +51,8 @@ type Clinic struct {
 
 // ClinicEdges holds the relations/edges for other nodes in the graph.
 type ClinicEdges struct {
-	// Users holds the value of the users edge.
-	Users []*User `json:"users,omitempty"`
+	// ClinicUsers holds the value of the clinic_users edge.
+	ClinicUsers []*ClinicUser `json:"clinic_users,omitempty"`
 	// Patients holds the value of the patients edge.
 	Patients []*Patient `json:"patients,omitempty"`
 	// Doctors holds the value of the doctors edge.
@@ -82,13 +82,13 @@ type ClinicEdges struct {
 	loadedTypes [13]bool
 }
 
-// UsersOrErr returns the Users value or an error if the edge
+// ClinicUsersOrErr returns the ClinicUsers value or an error if the edge
 // was not loaded in eager-loading.
-func (e ClinicEdges) UsersOrErr() ([]*User, error) {
+func (e ClinicEdges) ClinicUsersOrErr() ([]*ClinicUser, error) {
 	if e.loadedTypes[0] {
-		return e.Users, nil
+		return e.ClinicUsers, nil
 	}
-	return nil, &NotLoadedError{edge: "users"}
+	return nil, &NotLoadedError{edge: "clinic_users"}
 }
 
 // PatientsOrErr returns the Patients value or an error if the edge
@@ -324,9 +324,9 @@ func (c *Clinic) Value(name string) (ent.Value, error) {
 	return c.selectValues.Get(name)
 }
 
-// QueryUsers queries the "users" edge of the Clinic entity.
-func (c *Clinic) QueryUsers() *UserQuery {
-	return NewClinicClient(c.config).QueryUsers(c)
+// QueryClinicUsers queries the "clinic_users" edge of the Clinic entity.
+func (c *Clinic) QueryClinicUsers() *ClinicUserQuery {
+	return NewClinicClient(c.config).QueryClinicUsers(c)
 }
 
 // QueryPatients queries the "patients" edge of the Clinic entity.

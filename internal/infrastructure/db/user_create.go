@@ -10,7 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/session"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/user"
 	"github.com/google/uuid"
@@ -132,23 +132,19 @@ func (uc *UserCreate) AddSessions(s ...*Session) *UserCreate {
 	return uc.AddSessionIDs(ids...)
 }
 
-// SetClinicID sets the "clinic" edge to the Clinic entity by ID.
-func (uc *UserCreate) SetClinicID(id uuid.UUID) *UserCreate {
-	uc.mutation.SetClinicID(id)
+// AddClinicUserIDs adds the "clinic_users" edge to the ClinicUser entity by IDs.
+func (uc *UserCreate) AddClinicUserIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddClinicUserIDs(ids...)
 	return uc
 }
 
-// SetNillableClinicID sets the "clinic" edge to the Clinic entity by ID if the given value is not nil.
-func (uc *UserCreate) SetNillableClinicID(id *uuid.UUID) *UserCreate {
-	if id != nil {
-		uc = uc.SetClinicID(*id)
+// AddClinicUsers adds the "clinic_users" edges to the ClinicUser entity.
+func (uc *UserCreate) AddClinicUsers(c ...*ClinicUser) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return uc
-}
-
-// SetClinic sets the "clinic" edge to the Clinic entity.
-func (uc *UserCreate) SetClinic(c *Clinic) *UserCreate {
-	return uc.SetClinicID(c.ID)
+	return uc.AddClinicUserIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -315,21 +311,20 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.ClinicIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.ClinicUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   user.ClinicTable,
-			Columns: []string{user.ClinicColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ClinicUsersTable,
+			Columns: []string{user.ClinicUsersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clinic.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(clinicuser.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.clinic_users = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

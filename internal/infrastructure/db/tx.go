@@ -28,6 +28,8 @@ type Tx struct {
 	ChatThread *ChatThreadClient
 	// Clinic is the client for interacting with the Clinic builders.
 	Clinic *ClinicClient
+	// ClinicUser is the client for interacting with the ClinicUser builders.
+	ClinicUser *ClinicUserClient
 	// Doctor is the client for interacting with the Doctor builders.
 	Doctor *DoctorClient
 	// DoctorSchedule is the client for interacting with the DoctorSchedule builders.
@@ -199,6 +201,7 @@ func (tx *Tx) init() {
 	tx.ChatMessage = NewChatMessageClient(tx.config)
 	tx.ChatThread = NewChatThreadClient(tx.config)
 	tx.Clinic = NewClinicClient(tx.config)
+	tx.ClinicUser = NewClinicUserClient(tx.config)
 	tx.Doctor = NewDoctorClient(tx.config)
 	tx.DoctorSchedule = NewDoctorScheduleClient(tx.config)
 	tx.Document = NewDocumentClient(tx.config)

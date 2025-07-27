@@ -105,6 +105,18 @@ func (f ClinicFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ClinicMutation", m)
 }
 
+// The ClinicUserFunc type is an adapter to allow the use of ordinary
+// function as ClinicUser mutator.
+type ClinicUserFunc func(context.Context, *db.ClinicUserMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ClinicUserFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ClinicUserMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ClinicUserMutation", m)
+}
+
 // The DoctorFunc type is an adapter to allow the use of ordinary
 // function as Doctor mutator.
 type DoctorFunc func(context.Context, *db.DoctorMutation) (db.Value, error)

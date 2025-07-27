@@ -20,6 +20,7 @@ import (
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatmessage"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/chatthread"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinic"
+	"github.com/alfariiizi/vandor/internal/infrastructure/db/clinicuser"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctor"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/doctorschedule"
 	"github.com/alfariiizi/vandor/internal/infrastructure/db/document"
@@ -104,6 +105,7 @@ func checkColumn(table, column string) error {
 			chatmessage.Table:         chatmessage.ValidColumn,
 			chatthread.Table:          chatthread.ValidColumn,
 			clinic.Table:              clinic.ValidColumn,
+			clinicuser.Table:          clinicuser.ValidColumn,
 			doctor.Table:              doctor.ValidColumn,
 			doctorschedule.Table:      doctorschedule.ValidColumn,
 			document.Table:            document.ValidColumn,

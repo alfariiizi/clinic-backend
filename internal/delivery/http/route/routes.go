@@ -4,18 +4,78 @@
 package route
 
 import (
+	appointment_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/appointment"
 	auth_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/auth"
+	clinic_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/clinic"
+	doctor_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/doctor"
+	feature_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/feature"
+	order_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/order"
+	patient_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/patient"
+	product_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/product"
+	queueentry_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/queueentry"
+	service_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/service"
 	system_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/system"
+	user_handler "github.com/alfariiizi/vandor/internal/delivery/http/route/user"
 	"go.uber.org/fx"
 )
 
 var Module = fx.Module(
 	"route",
 	fx.Invoke(
+		appointment_handler.NewCreateAppointment,
+		appointment_handler.NewDeleteAppointment,
+		appointment_handler.NewDetailAppointment,
+		appointment_handler.NewListAppointment,
+		appointment_handler.NewUpdateAppointment,
 		auth_handler.NewLogin,
 		auth_handler.NewLoginAdmin,
 		auth_handler.NewRefresh,
+		clinic_handler.NewCreateClinic,
+		clinic_handler.NewDeleteClinic,
+		clinic_handler.NewDetailClinic,
+		clinic_handler.NewListClinic,
+		clinic_handler.NewUpdateClinic,
+		doctor_handler.NewCreateDoctor,
+		doctor_handler.NewDeleteDoctor,
+		doctor_handler.NewDetailDoctor,
+		doctor_handler.NewListDoctor,
+		doctor_handler.NewUpdateDoctor,
+		feature_handler.NewCreateFeature,
+		feature_handler.NewDeleteFeature,
+		feature_handler.NewDetailFeature,
+		feature_handler.NewListFeature,
+		feature_handler.NewUpdateFeature,
+		order_handler.NewCreateOrder,
+		order_handler.NewDeleteOrder,
+		order_handler.NewDetailOrder,
+		order_handler.NewListOrder,
+		order_handler.NewUpdateOrder,
+		patient_handler.NewCreatePatient,
+		patient_handler.NewDeletePatient,
+		patient_handler.NewDetailPatient,
+		patient_handler.NewListPatient,
+		patient_handler.NewUpdatePatient,
+		product_handler.NewCreateProduct,
+		product_handler.NewDeleteProduct,
+		product_handler.NewDetailProduct,
+		product_handler.NewListProduct,
+		product_handler.NewUpdateProduct,
+		queueentry_handler.NewCreateQueueEntry,
+		queueentry_handler.NewDeleteQueueEntry,
+		queueentry_handler.NewDetailQueueEntry,
+		queueentry_handler.NewListQueueEntry,
+		queueentry_handler.NewUpdateQueueEntry,
+		service_handler.NewCreateService,
+		service_handler.NewDeleteService,
+		service_handler.NewDetailService,
+		service_handler.NewListService,
+		service_handler.NewUpdateService,
 		system_handler.NewHealth,
 		system_handler.NewPing,
+		user_handler.NewCreateUser,
+		user_handler.NewDeleteUser,
+		user_handler.NewDetailUser,
+		user_handler.NewListUser,
+		user_handler.NewUpdateUser,
 	),
 )
